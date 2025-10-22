@@ -1,6 +1,8 @@
-import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Separator } from '@/components/ui/separator';
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +22,12 @@ const userItems = [
   { title: 'Relatórios', url: '/reports', icon: BarChart3 },
 ];
 
+const adminItems = [
+  { title: 'Dashboard Admin', url: '/admin/dashboard', icon: Shield },
+  { title: 'Gerenciar Usuários', url: '/admin/users', icon: Users },
+  { title: 'Auditoria & Logs', url: '/admin/audit', icon: FileSearch },
+];
+
 const bottomItems = [
   { title: 'Configurações', url: '/settings', icon: Settings },
   { title: 'Ajuda', url: '/help', icon: HelpCircle },
@@ -28,6 +36,7 @@ const bottomItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const { signOut } = useAuth();
+  const { isAdmin } = useUserRole();
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'hover:bg-sidebar-accent/50';
@@ -58,6 +67,29 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isAdmin && (
+          <>
+            <Separator className="my-2" />
+            <SidebarGroup>
+              <SidebarGroupLabel>Administração</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} end className={getNavCls}>
+                          <item.icon className="h-5 w-5" />
+                          {state !== 'collapsed' && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
 
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
