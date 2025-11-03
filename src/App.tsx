@@ -9,14 +9,19 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Upload from "./pages/Upload";
 import Analyses from "./pages/Analyses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import DFD from "./pages/upload/DFD";
+import ETP from "./pages/upload/ETP";
+import NotaTecnica from "./pages/upload/NotaTecnica";
+import AnaliseRisco from "./pages/upload/AnaliseRisco";
+import TermoReferencia from "./pages/upload/TermoReferencia";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import AuditLogs from "./pages/admin/AuditLogs";
 import NotFound from "./pages/NotFound";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +38,12 @@ const App = () => (
             
             {/* User Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
-            <Route path="/upload" element={<ProtectedRoute><DashboardLayout><Upload /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/upload" element={<Navigate to="/upload/dfd" replace />} />
+            <Route path="/upload/dfd" element={<ProtectedRoute><DashboardLayout><DFD /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/upload/etp" element={<ProtectedRoute><DashboardLayout><ETP /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/upload/nota-tecnica" element={<ProtectedRoute><DashboardLayout><NotaTecnica /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/upload/analise-risco" element={<ProtectedRoute><DashboardLayout><AnaliseRisco /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/upload/termo-referencia" element={<ProtectedRoute><DashboardLayout><TermoReferencia /></DashboardLayout></ProtectedRoute>} />
             <Route path="/analyses" element={<ProtectedRoute><DashboardLayout><Analyses /></DashboardLayout></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><DashboardLayout><Reports /></DashboardLayout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
