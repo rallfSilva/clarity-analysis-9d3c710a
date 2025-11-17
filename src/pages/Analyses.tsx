@@ -59,6 +59,7 @@ export default function Analyses() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAnalyses();
@@ -146,6 +147,128 @@ export default function Analyses() {
     } finally {
       setDeleteDialogOpen(false);
       setAnalysisToDelete(null);
+    }
+  };
+
+  const handleDownloadReport = async (analysis: Analysis) => {
+    setDownloadingId(analysis.id);
+    
+    try {
+      toast({
+        title: 'Gerando PDF',
+        description: 'Por favor aguarde...',
+      });
+
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Cabeçalho
+      doc.setFontSize(18);
+      doc.setTextColor(79, 70, 229);
+      doc.text('Relatório de Análise de Conformidade', margin, yPosition);
+      yPosition += 10;
+
+      // Linha divisória
+      doc.setDrawColor(79, 70, 229);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+
+      // Informações do documento
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Processo: ${analysis.processo || 'N/A'}`, margin, yPosition);
+      yPosition += 7;
+      doc.text(`Tipo de Documento: ${analysis.tipo_documento}`, margin, yPosition);
+      yPosition += 7;
+      doc.text(
+        `Data da Análise: ${format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
+        margin,
+        yPosition
+      );
+      yPosition += 7;
+      
+      if (analysis.conformidade_percentual !== null) {
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(
+          `Conformidade: ${analysis.conformidade_percentual.toFixed(1)}%`,
+          margin,
+          yPosition
+        );
+        yPosition += 10;
+      }
+
+      // Linha divisória
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+
+      // Conteúdo do relatório
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(10);
+      
+      if (analysis.relatorio_html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = analysis.relatorio_html;
+        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+        
+        const lines = doc.splitTextToSize(textContent, pageWidth - 2 * margin);
+        
+        lines.forEach((line: string) => {
+          if (yPosition > pageHeight - margin - 15) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, margin, yPosition);
+          yPosition += 5;
+        });
+      }
+
+      // Rodapé
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
+          margin,
+          pageHeight - 10
+        );
+        doc.text(
+          `Página ${i} de ${totalPages}`,
+          pageWidth - margin - 20,
+          pageHeight - 10
+        );
+      }
+
+      // Salvar PDF
+      const fileName = `Analise_${analysis.tipo_documento.replace(/\s+/g, '_')}_${analysis.processo?.replace(/[\/\\]/g, '_') || 'Sem_Processo'}_${format(new Date(analysis.created_at), 'ddMMyyyy')}.pdf`;
+      doc.save(fileName);
+
+      toast({
+        title: 'Sucesso',
+        description: 'Relatório baixado com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Erro ao gerar PDF:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível gerar o PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -242,8 +365,26 @@ export default function Analyses() {
                             setSelectedAnalysis(analysis);
                             setReportDialogOpen(true);
                           }}
+                          title="Ver relatório"
+                          aria-label={`Ver relatório da análise ${analysis.processo}`}
                         >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {analysis.status === 'success' && analysis.relatorio_html && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDownloadReport(analysis)}
+                          disabled={downloadingId === analysis.id}
+                          title="Baixar relatório em PDF"
+                          aria-label={`Baixar relatório da análise ${analysis.processo}`}
+                        >
+                          {downloadingId === analysis.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          ) : (
+                            <Download className="h-4 w-4 text-primary" />
+                          )}
                         </Button>
                       )}
                       <Button
@@ -253,6 +394,8 @@ export default function Analyses() {
                           setAnalysisToDelete(analysis.id);
                           setDeleteDialogOpen(true);
                         }}
+                        title="Excluir análise"
+                        aria-label={`Excluir análise ${analysis.processo}`}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
