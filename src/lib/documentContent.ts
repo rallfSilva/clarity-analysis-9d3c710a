@@ -67,3 +67,19 @@ export const DOCUMENT_DESCRIPTIONS = {
     ]
   }
 } as const;
+
+export const FUNDAMENTACAO_JURIDICA = {
+  titulo: "Fundamentação Jurídica",
+  items: [
+    "Lei n° 14.133, 1° de abril de 2021, Lei de Licitações e Contratos Administrativos.",
+    "Decreto nº 39.050-E de 18 de agosto de 2025 - Nas contratações no âmbito da Administração Pública Estadual Direta, Autárquica e Fundacional do Estado de Roraima.",
+    "INSTRUÇÃO NORMATIVA SEGES/ME Nº 81, DE 25 DE NOVEMBRO DE 2022, INSTRUÇÃO NORMATIVA SEGES Nº 58, DE 8 DE AGOSTO DE 2022 e INSTRUÇÃO NORMATIVA SEGES/ME Nº 65, DE 7 DE JULHO DE 2021"
+  ],
+  srp: {
+    titulo: "Fundamentação da adoção do SRP",
+    items: [
+      "Decreto n° 11.462, de 31 de março de 2023 - No caso de contratações provenientes de recursos da União decorrentes de transferências voluntárias.",
+      "Decreto nº 37.424-E, de 19 de março de 2025 - Nas contratações no âmbito da Administração Pública Estadual Direta, Autárquica e Fundacional do Poder Executivo do Estado de Roraima."
+    ]
+  }
+} as const;
