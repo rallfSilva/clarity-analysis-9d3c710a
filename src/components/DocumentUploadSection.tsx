@@ -11,6 +11,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AnalyzedFilesList } from './AnalyzedFilesList';
 import type { DocumentType } from '@/lib/documentContent';
+import { FUNDAMENTACAO_JURIDICA } from '@/lib/documentContent';
+import { Scale } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 interface DocumentUploadSectionProps {
   tipo: DocumentType;
@@ -156,6 +159,41 @@ export function DocumentUploadSection({
                 </li>
               ))}
             </ul>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Fundamentação Jurídica */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                <Scale className="h-4 w-4 text-primary" />
+                {FUNDAMENTACAO_JURIDICA.titulo}:
+              </p>
+              <ul className="space-y-2">
+                {FUNDAMENTACAO_JURIDICA.items.map((item, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                {FUNDAMENTACAO_JURIDICA.srp.titulo}:
+              </p>
+              <ul className="space-y-2">
+                {FUNDAMENTACAO_JURIDICA.srp.items.map((item, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>
