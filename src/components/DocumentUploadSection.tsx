@@ -97,7 +97,7 @@ export function DocumentUploadSection({
       if (insertError) throw insertError;
 
       // Chamar webhook n8n
-      const webhookUrl = 'http://localhost:5678/webhook-test/teste';
+      const webhookUrl = 'http://localhost:5678/webhook/teste';
       try {
         const webhookPayload = {
           analysis_id: analysis.id,
