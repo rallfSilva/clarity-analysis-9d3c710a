@@ -96,8 +96,37 @@ export function DocumentUploadSection({
 
       if (insertError) throw insertError;
 
+      // Chamar webhook n8n
+      const webhookUrl = 'http://localhost:5678/webhook-test/teste';
+      try {
+        const webhookPayload = {
+          analysis_id: analysis.id,
+          user_id: user.id,
+          processo: processo,
+          tipo_documento: tipo,
+          arquivo_url: urlData.publicUrl,
+          file_name: file.name,
+          file_size: file.size,
+          created_at: new Date().toISOString()
+        };
+
+        const webhookResponse = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookPayload),
+        });
+        
+        if (!webhookResponse.ok) {
+          console.warn('Webhook n8n retornou erro:', webhookResponse.status);
+        }
+      } catch (webhookError) {
+        console.warn('Erro ao chamar webhook n8n:', webhookError);
+        // Não interrompe o fluxo principal
+      }
+
       // Call edge function to process analysis
-      // TODO: Preparado para webhook n8n futuro
       const { error: functionError } = await supabase.functions.invoke('analyze-document', {
         body: { analysis_id: analysis.id },
       });
