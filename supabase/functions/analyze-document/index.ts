@@ -52,9 +52,18 @@ serve(async (req) => {
       throw new Error('Erro ao baixar arquivo');
     }
 
-    // Convert file to base64 for AI processing
+    // Convert file to base64 for AI processing (chunked to avoid stack overflow)
     const arrayBuffer = await fileData.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    const base64 = btoa(binary);
+    
+    console.log('File converted to base64, length:', base64.length);
 
     // Prepare checklist
     const checklist = analysis.checklist || [
