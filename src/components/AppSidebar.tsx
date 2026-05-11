@@ -132,7 +132,7 @@ export function AppSidebar() {
           <>
             <Separator className="my-2" />
             <SidebarGroup>
-              <SidebarGroupLabel>Administração</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[10px] font-bold tracking-[0.15em] text-white/50 uppercase">Administração</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminItems.map((item) => (
