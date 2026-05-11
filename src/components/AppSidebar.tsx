@@ -1,4 +1,4 @@
-import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown } from 'lucide-react';
+import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,16 +59,22 @@ export function AppSidebar() {
     isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'hover:bg-sidebar-accent/50';
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
-        <div className="px-4 py-6">
-          <h2 className={`font-bold text-sidebar-foreground ${state === 'collapsed' ? 'text-center' : 'text-xl'}`}>
-            {state === 'collapsed' ? 'AC' : 'Análise Conformidade'}
-          </h2>
+    <Sidebar collapsible="icon" className="border-r-0">
+      <SidebarContent className="bg-sidebar">
+        <div className="px-4 py-5 flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </div>
+          {state !== 'collapsed' && (
+            <div className="leading-tight">
+              <h2 className="font-extrabold text-white text-lg tracking-wide">SIAC</h2>
+              <p className="text-[10px] font-semibold text-white/60 tracking-[0.2em]">SELC</p>
+            </div>
+          )}
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-bold tracking-[0.15em] text-white/50 uppercase">Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -126,7 +132,7 @@ export function AppSidebar() {
           <>
             <Separator className="my-2" />
             <SidebarGroup>
-              <SidebarGroupLabel>Administração</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-[10px] font-bold tracking-[0.15em] text-white/50 uppercase">Administração</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminItems.map((item) => (
