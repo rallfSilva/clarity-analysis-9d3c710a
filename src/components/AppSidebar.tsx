@@ -1,4 +1,4 @@
-import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown } from 'lucide-react';
+import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
