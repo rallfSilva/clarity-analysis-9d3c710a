@@ -24,7 +24,7 @@ export function useDashboardData(period: Period = 30) {
       const concluidas = all.filter((a) => a.status === 'success');
       const emAndamento = all.filter((a) => a.status === 'processing');
       const pendentes = all.filter((a) => a.status === 'pending');
-      const naoConformes = all.filter((a) => a.status === 'failed');
+      const naoConformes = all.filter((a) => a.status === 'error');
 
       const conformidades = concluidas
         .map((a) => Number(a.conformidade_percentual))
