@@ -1,84 +1,65 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileCheck, Clock, AlertCircle, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useDashboardData, type Period } from '@/hooks/useDashboardData';
+import { StatCards } from '@/components/dashboard/StatCards';
+import { ComplianceChart } from '@/components/dashboard/ComplianceChart';
+import { StatusChart } from '@/components/dashboard/StatusChart';
+import { DepartmentChart } from '@/components/dashboard/DepartmentChart';
+import { RecentAnalyses } from '@/components/dashboard/RecentAnalyses';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
-  const kpis = [
-    {
-      title: 'Total de Análises',
-      value: '0',
-      icon: FileCheck,
-      description: 'Últimos 30 dias',
-      color: 'text-primary'
-    },
-    {
-      title: 'Conformidade Média',
-      value: '0%',
-      icon: TrendingUp,
-      description: 'Taxa de conformidade',
-      color: 'text-accent'
-    },
-    {
-      title: 'Em Processamento',
-      value: '0',
-      icon: Clock,
-      description: 'Análises pendentes',
-      color: 'text-muted-foreground'
-    },
-    {
-      title: 'Não Conformidades',
-      value: '0',
-      icon: AlertCircle,
-      description: 'Itens identificados',
-      color: 'text-destructive'
-    }
-  ];
+  const { user } = useAuth();
+  const [period, setPeriod] = useState<Period>(30);
+  const { data, isLoading } = useDashboardData(period);
+
+  const name =
+    (user?.user_metadata?.name as string)?.split(' ')[0] ||
+    user?.email?.split('@')[0] ||
+    'Gestor';
+
+  if (isLoading || !data) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-32" />)}
+        </div>
+        <Skeleton className="h-72" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Dashboard
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Bem-vindo ao sistema de análise de conformidade
+        <h1 className="text-3xl font-bold text-foreground">Olá, {name} 👋</h1>
+        <p className="text-muted-foreground mt-1">
+          Visão geral das análises de conformidade no SIAC-SELC.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <Card
-              key={kpi.title}
-              className="transition-all hover:shadow-[var(--shadow-card)] hover:scale-105 duration-300"
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {kpi.title}
-                </CardTitle>
-                <Icon className={`h-5 w-5 ${kpi.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{kpi.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {kpi.description}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <StatCards
+        total={data.kpis.total}
+        conformidadeMedia={data.kpis.conformidadeMedia}
+        emProcessamento={data.kpis.emProcessamento}
+        naoConformidades={data.kpis.naoConformidades}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <ComplianceChart data={data.compliance} period={period} onPeriodChange={setPeriod} />
+        <StatusChart data={data.statusDistribution} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Análises Recentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-32 text-muted-foreground">
-            <p>Nenhuma análise realizada ainda. Faça upload do primeiro documento!</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <DepartmentChart />
+        <RecentAnalyses items={data.recent as any} />
+      </div>
+
+      <div className="text-center text-xs text-muted-foreground py-4 border-t border-border/60">
+        SIAC-SELC © 2026 - Sistema de Análise de Conformidade
+        <span className="ml-2 px-2 py-0.5 rounded-md bg-muted text-foreground/70">v1.0.0</span>
+      </div>
     </div>
   );
 };
