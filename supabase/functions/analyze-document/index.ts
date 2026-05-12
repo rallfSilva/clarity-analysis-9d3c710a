@@ -277,7 +277,7 @@ Para cada item do checklist, verifique:
 
 Forneça também:
 - Resumo executivo da análise
-- Principais não-conformidades encontradas
+- Principais indicadores de conformidade encontrados
 - Percentual geral de conformidade
 - Recomendações prioritárias`
             }
@@ -644,7 +644,7 @@ function generateGenericHtmlReport(analysis: any, resultado: any): string {
 
       ${resultado.principais_nao_conformidades?.length > 0 ? `
         <div style="margin: 2rem 0; background: hsl(0, 72%, 97%); padding: 1.5rem; border-radius: 8px;">
-          <h2 style="color: hsl(0, 72%, 35%); margin-top: 0;">Principais Não-Conformidades</h2>
+          <h2 style="color: hsl(0, 72%, 35%); margin-top: 0;">Principais Indicadores de Conformidade</h2>
           <ul style="margin: 0;">
             ${resultado.principais_nao_conformidades.map((nc: string) => `<li style="margin: 0.5rem 0;">${nc}</li>`).join('')}
           </ul>
@@ -685,7 +685,7 @@ ${item.recomendacao ? `Recomendação: ${item.recomendacao}` : ''}
 `).join('\n') || ''}
 
 ${resultado.principais_nao_conformidades?.length > 0 ? `
-PRINCIPAIS NÃO-CONFORMIDADES
+PRINCIPAIS INDICADORES DE CONFORMIDADE
 ${resultado.principais_nao_conformidades.map((nc: string, i: number) => `${i + 1}. ${nc}`).join('\n')}
 ` : ''}
 

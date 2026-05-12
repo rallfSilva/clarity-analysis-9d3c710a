@@ -231,7 +231,7 @@ export default function Reports() {
       {/* Top Non-Conformities */}
       <Card>
         <CardHeader>
-          <CardTitle>Top 5 Não-Conformidades</CardTitle>
+          <CardTitle>Top 5 Indicador de Conformidades</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -247,7 +247,7 @@ export default function Reports() {
         </CardContent>
       </Card>
 
-      {/* Top 5 Secretarias com menos Não-Conformidades */}
+      {/* Top 5 Secretarias com melhor Indicador de Conformidade */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Top 5 Secretarias com Melhor Conformidade</CardTitle>
@@ -269,7 +269,7 @@ export default function Reports() {
               <YAxis dataKey="secretaria" type="category" width={150} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="count" fill="hsl(142, 76%, 36%)" name="Não-Conformidades" />
+              <Bar dataKey="count" fill="hsl(142, 76%, 36%)" name="Indicador de Conformidades" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

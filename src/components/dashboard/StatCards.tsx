@@ -42,7 +42,7 @@ export function StatCards({ total, conformidadeMedia, emProcessamento, naoConfor
       trendUp: true,
     },
     {
-      title: 'Não Conformidades',
+      title: 'Indicador de Conformidades',
       value: String(naoConformidades),
       description: 'Itens identificados',
       icon: AlertTriangle,
