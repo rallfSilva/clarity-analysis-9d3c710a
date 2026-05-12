@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { FileCheck, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import siacSelcLogo from '@/assets/siac-selc-logo.png';
 
 const loginSchema = z.object({
   email: z.string().trim().email({ message: "Email inválido" }),
@@ -119,9 +120,7 @@ const Auth = () => {
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-accent/20">
       <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-2xl shadow-[var(--shadow-elegant)] border border-border/50">
         <div className="flex flex-col items-center space-y-2">
-          <div className="p-4 rounded-full bg-gradient-to-br from-primary to-accent">
-            <FileCheck className="h-8 w-8 text-primary-foreground" />
-          </div>
+          <img src={siacSelcLogo} alt="SIAC SELC" className="h-24 w-auto object-contain" />
           <h1 className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-2xl text-center">
             Sistema Integrado de Análise de Conformidades
           </h1>
