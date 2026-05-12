@@ -250,7 +250,7 @@ export default function Reports() {
       {/* Top 5 Secretarias com menos Não-Conformidades */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Top 5 Secretarias com Menos Não-Conformidades</CardTitle>
+          <CardTitle>Top 5 Secretarias com Melhor Conformidade</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
