@@ -62,11 +62,11 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarContent className="bg-sidebar">
-        <div className="px-4 py-5 flex items-center justify-center">
+        <div className="px-4 py-6 flex items-center justify-center">
           <img
             src={siacSelcLogo}
             alt="SIAC SELC"
-            className={state === 'collapsed' ? 'h-8 w-8 object-contain' : 'h-12 w-auto object-contain'}
+            className={state === 'collapsed' ? 'h-10 w-10 object-contain' : 'h-20 w-auto object-contain'}
           />
         </div>
 
