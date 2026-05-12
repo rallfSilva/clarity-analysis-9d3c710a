@@ -122,11 +122,11 @@ const Auth = () => {
           <div className="p-4 rounded-full bg-gradient-to-br from-primary to-accent">
             <FileCheck className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Análise de Conformidade
+          <h1 className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-2xl text-center">
+            Sistema Integrado de Análise de Conformidades
           </h1>
-          <p className="text-muted-foreground text-center">
-            Sistema de análise de documentos licitatórios
+          <p className="text-muted-foreground text-center text-sm">
+            Sistema Integrado de Analise de Conformidades da SELC
           </p>
         </div>
 
