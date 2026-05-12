@@ -247,7 +247,7 @@ export default function Reports() {
         </CardContent>
       </Card>
 
-      {/* Top 5 Secretarias com menos Não-Conformidades */}
+      {/* Top 5 Secretarias com melhor Indicador de Conformidade */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Top 5 Secretarias com Melhor Conformidade</CardTitle>
