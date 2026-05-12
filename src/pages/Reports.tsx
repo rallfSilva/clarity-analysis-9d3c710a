@@ -247,6 +247,34 @@ export default function Reports() {
         </CardContent>
       </Card>
 
+      {/* Top 5 Secretarias com menos Não-Conformidades */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Top 5 Secretarias com Menos Não-Conformidades</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={[
+                { secretaria: 'SEFAZ', count: 1 },
+                { secretaria: 'SEDU', count: 2 },
+                { secretaria: 'SESA', count: 3 },
+                { secretaria: 'SEAG', count: 4 },
+                { secretaria: 'SEJUS', count: 5 },
+              ]}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis dataKey="secretaria" type="category" width={150} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="hsl(142, 76%, 36%)" name="Não-Conformidades" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
       {/* Export Button */}
       <div className="mt-8 flex justify-end">
         <Button onClick={() => {
