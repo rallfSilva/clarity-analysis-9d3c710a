@@ -125,7 +125,7 @@ const Auth = () => {
             Sistema Integrado de Análise de Conformidades
           </h1>
           <p className="text-muted-foreground text-center text-sm">
-            SIAC-SELC © 2026 - Sistema Integrado de Analise de Conformidades da SELCv1.0.0
+            Sistema Integrado de Analise de Conformidades da SELC
           </p>
         </div>
 
