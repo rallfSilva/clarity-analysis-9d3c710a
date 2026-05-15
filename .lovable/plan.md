@@ -1,15 +1,15 @@
-## Ajuste do tamanho da logo na sidebar
+## Ajuste da logo no sidebar
 
-A logo SIAC SELC está exibida atualmente com altura `h-12` (48px) na sidebar expandida e `h-8` (32px) na versão recolhida, ficando visualmente pequena em relação ao restante do sistema.
+A logo atual no `AppSidebar.tsx` usa `h-20` (80px) quando expandido e `h-10` (40px) quando colapsado, com pouco padding ao redor. Visualmente fica pequena em relação à largura do sidebar.
 
-### Alteração proposta
+### Alterações
 
-Em `src/components/AppSidebar.tsx`, no bloco do cabeçalho da sidebar:
+**Arquivo:** `src/components/AppSidebar.tsx` (linhas 65-71)
 
-- **Sidebar expandida**: aumentar a altura da logo de `h-12` para `h-20` (80px), com padding vertical maior (`py-6`) para respiro adequado.
-- **Sidebar recolhida (modo ícone)**: aumentar de `h-8` para `h-10` (40px), mantendo proporção dentro da largura estreita.
-- Manter `object-contain` e centralização para preservar a proporção original da imagem.
+1. Aumentar a altura da logo expandida de `h-20` para `h-32` (128px) e usar `w-full` para ocupar a largura disponível mantendo proporção via `object-contain`.
+2. Aumentar a logo colapsada de `h-10 w-10` para `h-12 w-12` para melhor visibilidade.
+3. Reduzir o padding vertical do container de `py-6` para `py-4` para dar mais espaço à logo sem inflar o cabeçalho.
 
 ### Resultado esperado
 
-A logo passa a ocupar um espaço proporcional ao header e aos itens do menu, ficando visualmente equilibrada com o restante da interface, tanto no estado expandido quanto recolhido.
+Logo proporcionalmente maior e centralizada, ocupando o cabeçalho do sidebar de forma equilibrada — sem distorção, mantendo a proporção original via `object-contain`.
