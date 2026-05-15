@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -24,6 +24,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, loading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isUploadRoute = location.pathname.startsWith('/upload');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -58,12 +60,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <header className="h-16 border-b border-border bg-card flex items-center px-4 md:px-6 gap-3">
             <SidebarTrigger />
             <div className="ml-auto flex items-center gap-2 md:gap-4">
-              <Button
-                onClick={() => navigate('/upload/etp')}
-                className="rounded-xl shadow-sm hidden sm:inline-flex"
-              >
-                <Plus className="h-4 w-4 mr-1.5" /> Nova Análise
-              </Button>
+              {isUploadRoute && (
+                <Button
+                  onClick={() => navigate('/upload/etp')}
+                  className="rounded-xl shadow-sm hidden sm:inline-flex"
+                >
+                  <Plus className="h-4 w-4 mr-1.5" /> Nova Análise
+                </Button>
+              )}
               <button className="relative h-9 w-9 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
                 <Bell className="h-4 w-4 text-muted-foreground" />
                 <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 rounded-full bg-danger text-[10px] font-bold text-danger-foreground flex items-center justify-center">

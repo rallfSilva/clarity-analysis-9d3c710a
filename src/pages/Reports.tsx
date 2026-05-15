@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FileText, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { FileText, TrendingUp, CheckCircle, Clock, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
 
 const COLORS = ['hsl(250, 60%, 55%)', 'hsl(320, 70%, 75%)', 'hsl(142, 76%, 36%)', 'hsl(45, 100%, 51%)', 'hsl(0, 72%, 51%)'];
 
@@ -103,6 +104,138 @@ export default function Reports() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 40;
+      let y = margin;
+
+      const checkPage = (needed = 20) => {
+        if (y + needed > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      };
+
+      // Header
+      doc.setFillColor(46, 32, 110);
+      doc.rect(0, 0, pageWidth, 70, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Relatório Consolidado - SIAC-SELC', margin, 35);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `Gerado em ${new Date().toLocaleString('pt-BR')}`,
+        margin,
+        55
+      );
+      y = 100;
+
+      // KPIs
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Indicadores Principais', margin, y);
+      y += 20;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      const kpiLines = [
+        `Total de Análises: ${stats.total}`,
+        `Conformidade Média: ${stats.avgConformidade.toFixed(1)}%`,
+        `Taxa de Sucesso: ${stats.successRate.toFixed(1)}%`,
+        `Tempo Médio de Processamento: ${stats.avgProcessingTime}s`,
+      ];
+      kpiLines.forEach((line) => {
+        checkPage(16);
+        doc.text(line, margin, y);
+        y += 16;
+      });
+      y += 10;
+
+      // Document types
+      checkPage(40);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Distribuição por Tipo de Documento', margin, y);
+      y += 18;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      if (documentTypes.length === 0) {
+        doc.text('Sem dados disponíveis.', margin, y);
+        y += 16;
+      } else {
+        documentTypes.forEach((d) => {
+          checkPage(16);
+          doc.text(`• ${d.name}: ${d.value}`, margin, y);
+          y += 16;
+        });
+      }
+      y += 10;
+
+      // Trend
+      checkPage(40);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tendência de Conformidade (7 dias)', margin, y);
+      y += 18;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      conformityTrend.forEach((t) => {
+        checkPage(16);
+        doc.text(`${t.date}: ${t.conformidade}%`, margin, y);
+        y += 16;
+      });
+      y += 10;
+
+      // Top non-conformities
+      checkPage(40);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Top 5 Indicador de Conformidades', margin, y);
+      y += 18;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      topNonConformities.forEach((t) => {
+        checkPage(16);
+        doc.text(`• ${t.item}: ${t.count}`, margin, y);
+        y += 16;
+      });
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.setTextColor(120, 120, 120);
+        doc.text(
+          `SIAC-SELC © ${new Date().getFullYear()} - Página ${i}/${pageCount}`,
+          pageWidth / 2,
+          pageHeight - 20,
+          { align: 'center' }
+        );
+      }
+
+      doc.save(`relatorio-consolidado-${new Date().toISOString().split('T')[0]}.pdf`);
+
+      toast({
+        title: 'Relatório exportado',
+        description: 'O PDF foi baixado com sucesso.',
+      });
+    } catch (err: any) {
+      console.error('Erro ao exportar PDF:', err);
+      toast({
+        title: 'Erro ao exportar',
+        description: err.message || 'Não foi possível gerar o PDF.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -277,12 +410,8 @@ export default function Reports() {
 
       {/* Export Button */}
       <div className="mt-8 flex justify-end">
-        <Button onClick={() => {
-          toast({
-            title: 'Exportando relatório',
-            description: 'Esta funcionalidade será implementada em breve',
-          });
-        }}>
+        <Button onClick={handleExportPDF}>
+          <Download className="h-4 w-4 mr-2" />
           Exportar Relatório Consolidado
         </Button>
       </div>
