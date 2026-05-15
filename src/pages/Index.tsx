@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { FileCheck, Shield, Zap, BarChart } from 'lucide-react';
+import { Shield, Zap, BarChart } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
+import siacSelcLogo from '@/assets/siac-selc-logo.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -28,9 +29,11 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center space-y-8 max-w-4xl mx-auto">
           <div className="flex justify-center">
-            <div className="p-6 rounded-full bg-gradient-to-br from-primary to-accent animate-pulse">
-              <FileCheck className="h-16 w-16 text-primary-foreground" />
-            </div>
+            <img
+              src={siacSelcLogo}
+              alt="SIAC SELC"
+              className="h-40 md:h-56 w-auto object-contain drop-shadow-xl"
+            />
           </div>
           
           <h1 className="text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
