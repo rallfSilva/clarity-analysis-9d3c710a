@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FileText, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { FileText, TrendingUp, CheckCircle, Clock, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
 
 const COLORS = ['hsl(250, 60%, 55%)', 'hsl(320, 70%, 75%)', 'hsl(142, 76%, 36%)', 'hsl(45, 100%, 51%)', 'hsl(0, 72%, 51%)'];
 
@@ -277,12 +278,8 @@ export default function Reports() {
 
       {/* Export Button */}
       <div className="mt-8 flex justify-end">
-        <Button onClick={() => {
-          toast({
-            title: 'Exportando relatório',
-            description: 'Esta funcionalidade será implementada em breve',
-          });
-        }}>
+        <Button onClick={handleExportPDF}>
+          <Download className="h-4 w-4 mr-2" />
           Exportar Relatório Consolidado
         </Button>
       </div>
