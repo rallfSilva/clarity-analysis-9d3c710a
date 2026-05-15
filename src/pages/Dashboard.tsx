@@ -57,7 +57,8 @@ const Dashboard = () => {
       </div>
 
       <div className="text-center text-xs text-muted-foreground py-4 border-t border-border/60">
-        SIAC-SELC © 2026 - Sistema Integrado de Analise de Conformidades da SELC
+        Sistema Integrado de Analise de Conformidades da SELC<br />
+        SIAC-SELC © 2026
       </div>
     </div>
   );
