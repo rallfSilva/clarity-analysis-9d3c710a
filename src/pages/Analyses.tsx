@@ -61,6 +61,7 @@ export default function Analyses() {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [selectedAnalyst, setSelectedAnalyst] = useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
     fetchAnalyses();
@@ -456,6 +457,17 @@ export default function Analyses() {
           <DialogHeader>
             <DialogTitle>Relatório de Análise</DialogTitle>
           </DialogHeader>
+          {selectedAnalysis && (
+            <div className="mb-4 rounded-lg border border-border bg-muted/30 p-4 text-sm">
+              <p className="font-semibold text-foreground mb-2">Analista responsável</p>
+              <div className="grid gap-1 sm:grid-cols-2 text-muted-foreground">
+                <p><span className="font-medium text-foreground">Nome:</span> {selectedAnalyst?.name ?? '—'}</p>
+                <p><span className="font-medium text-foreground">E-mail:</span> {selectedAnalyst?.email ?? '—'}</p>
+                <p><span className="font-medium text-foreground">ID:</span> {selectedAnalysis.user_id.slice(0, 8)}</p>
+                <p><span className="font-medium text-foreground">Gerado em:</span> {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+              </div>
+            </div>
+          )}
           {selectedAnalysis?.relatorio_html && (
             <div dangerouslySetInnerHTML={{ __html: selectedAnalysis.relatorio_html }} />
           )}
