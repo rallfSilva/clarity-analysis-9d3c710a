@@ -2,6 +2,7 @@ import { Download, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { AnalysisProgress } from '@/components/AnalysisProgress';
 import { useAnalysesByType } from '@/hooks/useAnalysesByType';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -72,6 +73,19 @@ export function AnalyzedFilesList({ tipo }: AnalyzedFilesListProps) {
                         </span>
                       </div>
                       <Progress value={conformidade} className="h-2" />
+                    </div>
+                  )}
+
+                  {(analysis.status === 'pending' || analysis.status === 'processing') && (
+                    <div className="mt-2">
+                      <AnalysisProgress
+                        step={analysis.status === 'processing' ? 3 : 2}
+                        label={
+                          analysis.status === 'processing'
+                            ? 'IA analisando o documento…'
+                            : 'Aguardando início do processamento…'
+                        }
+                      />
                     </div>
                   )}
 

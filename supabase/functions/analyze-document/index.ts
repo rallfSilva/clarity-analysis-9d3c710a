@@ -89,6 +89,18 @@ serve(async (req) => {
       throw new Error('Análise não encontrada');
     }
 
+    // Fetch analyst profile for traceability
+    const { data: analystProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', analysis.user_id)
+      .maybeSingle();
+    const analyst = {
+      name: analystProfile?.name || 'Analista não identificado',
+      email: analystProfile?.email || '—',
+      shortId: analysis.user_id.slice(0, 8),
+    };
+
     console.log('Starting analysis for:', analysis.tipo_documento, 'Process:', analysis.processo);
 
     // Update status to processing
@@ -232,8 +244,8 @@ serve(async (req) => {
       console.log('ETP Analysis result parsed, conformidade:', resultado.conformidade_percentual);
 
       // Generate ETP-specific HTML report with table format
-      relatorio_html = generateETPHtmlReport(analysis, resultado);
-      relatorio_texto = generateETPTextReport(analysis, resultado);
+      relatorio_html = generateETPHtmlReport(analysis, resultado, analyst);
+      relatorio_texto = generateETPTextReport(analysis, resultado, analyst);
       
     } else {
       // Use generic analysis for other document types
@@ -336,8 +348,8 @@ Forneça também:
       resultado = JSON.parse(toolCall.function.arguments);
 
       // Generate generic HTML report
-      relatorio_html = generateGenericHtmlReport(analysis, resultado);
-      relatorio_texto = generateGenericTextReport(analysis, resultado);
+      relatorio_html = generateGenericHtmlReport(analysis, resultado, analyst);
+      relatorio_texto = generateGenericTextReport(analysis, resultado, analyst);
     }
 
     // Update analysis with results
@@ -411,7 +423,7 @@ function getConformityStyle(conformidade: string) {
 }
 
 // Generate ETP-specific HTML report
-function generateETPHtmlReport(analysis: any, resultado: any): string {
+function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableRows = resultado.tabela_analise?.map((item: any) => {
@@ -456,6 +468,17 @@ function generateETPHtmlReport(analysis: any, resultado: any): string {
               </span>
             </p>
           </div>
+        </div>
+      </div>
+
+      <!-- Analyst Identification -->
+      <div style="background: hsl(220, 30%, 97%); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid hsl(224, 76%, 48%);">
+        <p style="margin: 0 0 0.5rem 0; font-weight: 600; color: hsl(224, 60%, 30%);">Analista Responsável</p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1rem; font-size: 0.9rem; color: hsl(220, 20%, 30%);">
+          <p style="margin: 0;"><strong>Nome:</strong> ${analyst.name}</p>
+          <p style="margin: 0;"><strong>E-mail:</strong> ${analyst.email}</p>
+          <p style="margin: 0;"><strong>ID:</strong> ${analyst.shortId}</p>
+          <p style="margin: 0;"><strong>Relatório emitido em:</strong> ${new Date().toLocaleString('pt-BR')}</p>
         </div>
       </div>
 
@@ -531,7 +554,7 @@ function generateETPHtmlReport(analysis: any, resultado: any): string {
 }
 
 // Generate ETP-specific text report
-function generateETPTextReport(analysis: any, resultado: any): string {
+function generateETPTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableContent = resultado.tabela_analise?.map((item: any) => {
@@ -556,12 +579,20 @@ ${item.numero}. ${item.codigo} - ${item.item_verificado}
               Estudo Técnico Preliminar • Lei nº 14.133/2021
 ================================================================================
 
+ANALISTA RESPONSÁVEL
+--------------------
+Nome: ${analyst.name}
+E-mail: ${analyst.email}
+ID: ${analyst.shortId}
+Relatório emitido em: ${new Date().toLocaleString('pt-BR')}
+
 INFORMAÇÕES DO DOCUMENTO
 ------------------------
 Processo: ${analysis.processo || 'Não informado'}
 Tipo de Documento: ${analysis.tipo_documento}
 Data da Análise: ${new Date().toLocaleString('pt-BR')}
 Conformidade Geral: ${conformidadeFormatted}%
+
 
 ================================================================================
                         TABELA DE ANÁLISE DE CONFORMIDADE
@@ -600,13 +631,21 @@ Lei nº 14.133/2021 • Decreto nº 39.050-E/2025
 }
 
 // Generate generic HTML report (for other document types)
-function generateGenericHtmlReport(analysis: any, resultado: any): string {
+function generateGenericHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   return `
     <div style="font-family: Inter, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem;">
       <h1 style="color: hsl(250, 60%, 55%); border-bottom: 2px solid hsl(250, 60%, 55%); padding-bottom: 1rem;">
         Relatório de Análise de Conformidade
       </h1>
-      
+
+      <div style="background: hsl(220, 30%, 97%); padding: 1rem 1.5rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid hsl(224, 76%, 48%);">
+        <h2 style="color: hsl(224, 60%, 30%); margin: 0 0 0.5rem 0; font-size: 1.1rem;">Analista Responsável</h2>
+        <p style="margin: 0.25rem 0;"><strong>Nome:</strong> ${analyst.name}</p>
+        <p style="margin: 0.25rem 0;"><strong>E-mail:</strong> ${analyst.email}</p>
+        <p style="margin: 0.25rem 0;"><strong>ID:</strong> ${analyst.shortId}</p>
+        <p style="margin: 0.25rem 0;"><strong>Relatório emitido em:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+      </div>
+
       <div style="background: hsl(250, 60%, 97%); padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
         <h2 style="color: hsl(250, 60%, 35%); margin-top: 0;">Informações do Documento</h2>
         <p><strong>Processo:</strong> ${analysis.processo}</p>
@@ -614,6 +653,7 @@ function generateGenericHtmlReport(analysis: any, resultado: any): string {
         <p><strong>Data da Análise:</strong> ${new Date().toLocaleString('pt-BR')}</p>
         <p><strong>Conformidade Geral:</strong> ${resultado.conformidade_percentual?.toFixed(1) || '0.0'}%</p>
       </div>
+
 
       <div style="margin: 2rem 0;">
         <h2 style="color: hsl(250, 60%, 35%);">Resumo Executivo</h2>
@@ -664,15 +704,22 @@ function generateGenericHtmlReport(analysis: any, resultado: any): string {
 }
 
 // Generate generic text report (for other document types)
-function generateGenericTextReport(analysis: any, resultado: any): string {
+function generateGenericTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   return `
 RELATÓRIO DE ANÁLISE DE CONFORMIDADE
+
+ANALISTA RESPONSÁVEL
+Nome: ${analyst.name}
+E-mail: ${analyst.email}
+ID: ${analyst.shortId}
+Relatório emitido em: ${new Date().toLocaleString('pt-BR')}
 
 INFORMAÇÕES DO DOCUMENTO
 Processo: ${analysis.processo}
 Tipo: ${analysis.tipo_documento}
 Data da Análise: ${new Date().toLocaleString('pt-BR')}
 Conformidade Geral: ${resultado.conformidade_percentual?.toFixed(1) || '0.0'}%
+
 
 RESUMO EXECUTIVO
 ${resultado.resumo_executivo}

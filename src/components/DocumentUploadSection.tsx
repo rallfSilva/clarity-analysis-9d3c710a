@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { Upload as UploadIcon, FileText, Loader2, CheckCircle2, CheckCircle } from 'lucide-react';
@@ -14,6 +14,7 @@ import type { DocumentType } from '@/lib/documentContent';
 import { FUNDAMENTACAO_JURIDICA } from '@/lib/documentContent';
 import { Scale } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { AnalysisProgress, type AnalysisStep } from './AnalysisProgress';
 
 interface DocumentUploadSectionProps {
   tipo: DocumentType;
@@ -34,6 +35,30 @@ export function DocumentUploadSection({
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [processo, setProcesso] = useState('');
+  const [step, setStep] = useState<AnalysisStep>(0);
+  const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState(false);
+
+  // Realtime tracking of the ongoing analysis
+  useEffect(() => {
+    if (!currentAnalysisId) return;
+    const channel = supabase
+      .channel(`analysis-${currentAnalysisId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'analyses', filter: `id=eq.${currentAnalysisId}` },
+        (payload) => {
+          const s = (payload.new as any).status;
+          if (s === 'processing') setStep(3);
+          if (s === 'success') setStep(4);
+          if (s === 'error') setAnalysisError(true);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentAnalysisId]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -63,9 +88,13 @@ export function DocumentUploadSection({
     }
 
     setUploading(true);
+    setAnalysisError(false);
+    setStep(0);
+    setCurrentAnalysisId(null);
 
     try {
-      // Upload file to storage
+      // Step 1: upload file to storage
+      setStep(0);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
@@ -76,12 +105,12 @@ export function DocumentUploadSection({
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('documents')
         .getPublicUrl(filePath);
 
-      // Create analysis record
+      // Step 2: create analysis record
+      setStep(1);
       const { data: analysis, error: insertError } = await supabase
         .from('analyses')
         .insert({
@@ -95,38 +124,36 @@ export function DocumentUploadSection({
         .single();
 
       if (insertError) throw insertError;
+      setCurrentAnalysisId(analysis.id);
 
-      // Chamar webhook n8n
+      // Step 3: notify processor (webhook n8n)
+      setStep(2);
       const webhookUrl = 'http://localhost:5678/webhook/teste';
       try {
         const webhookPayload = {
           analysis_id: analysis.id,
           user_id: user.id,
-          processo: processo,
+          processo,
           tipo_documento: tipo,
           arquivo_url: urlData.publicUrl,
           file_name: file.name,
           file_size: file.size,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         };
-
         const webhookResponse = await fetch(webhookUrl, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(webhookPayload),
         });
-        
         if (!webhookResponse.ok) {
           console.warn('Webhook n8n retornou erro:', webhookResponse.status);
         }
       } catch (webhookError) {
         console.warn('Erro ao chamar webhook n8n:', webhookError);
-        // Não interrompe o fluxo principal
       }
 
-      // Call edge function to process analysis
+      // Step 4: invoke edge function (AI)
+      setStep(3);
       const { error: functionError } = await supabase.functions.invoke('analyze-document', {
         body: { analysis_id: analysis.id },
       });
@@ -135,7 +162,6 @@ export function DocumentUploadSection({
         console.error('Error calling analyze function:', functionError);
       }
 
-      // Log audit
       await supabase.from('audit_logs').insert({
         user_id: user.id,
         action: 'analysis_created',
@@ -151,11 +177,12 @@ export function DocumentUploadSection({
         description: 'Seu documento está sendo processado.',
       });
 
-      // Reset form
+      // Reset form fields but keep progress panel visible
       setFile(null);
       setProcesso('');
     } catch (error: any) {
       console.error('Upload error:', error);
+      setAnalysisError(true);
       toast({
         title: 'Erro no upload',
         description: error.message || 'Não foi possível enviar o arquivo',
@@ -306,6 +333,23 @@ export function DocumentUploadSection({
           </Button>
         </div>
       </form>
+
+      {/* Indicador de progresso da análise em andamento */}
+      {(uploading || currentAnalysisId) && (
+        <AnalysisProgress
+          step={step}
+          error={analysisError}
+          label={
+            analysisError
+              ? 'Erro no processamento'
+              : step === 4
+              ? 'Análise concluída — veja em "Minhas Análises"'
+              : undefined
+          }
+        />
+      )}
+
+
 
       {/* Lista de arquivos analisados */}
       <div className="pt-6 border-t border-border">
