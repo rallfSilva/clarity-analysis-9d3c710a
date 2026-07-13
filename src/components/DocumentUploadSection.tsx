@@ -334,6 +334,23 @@ export function DocumentUploadSection({
         </div>
       </form>
 
+      {/* Indicador de progresso da análise em andamento */}
+      {(uploading || currentAnalysisId) && (
+        <AnalysisProgress
+          step={step}
+          error={analysisError}
+          label={
+            analysisError
+              ? 'Erro no processamento'
+              : step === 4
+              ? 'Análise concluída — veja em "Minhas Análises"'
+              : undefined
+          }
+        />
+      )}
+
+
+
       {/* Lista de arquivos analisados */}
       <div className="pt-6 border-t border-border">
         <AnalyzedFilesList tipo={tipo} />
