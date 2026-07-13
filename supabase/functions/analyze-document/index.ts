@@ -554,7 +554,7 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
 }
 
 // Generate ETP-specific text report
-function generateETPTextReport(analysis: any, resultado: any): string {
+function generateETPTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableContent = resultado.tabela_analise?.map((item: any) => {
@@ -579,12 +579,20 @@ ${item.numero}. ${item.codigo} - ${item.item_verificado}
               Estudo Técnico Preliminar • Lei nº 14.133/2021
 ================================================================================
 
+ANALISTA RESPONSÁVEL
+--------------------
+Nome: ${analyst.name}
+E-mail: ${analyst.email}
+ID: ${analyst.shortId}
+Relatório emitido em: ${new Date().toLocaleString('pt-BR')}
+
 INFORMAÇÕES DO DOCUMENTO
 ------------------------
 Processo: ${analysis.processo || 'Não informado'}
 Tipo de Documento: ${analysis.tipo_documento}
 Data da Análise: ${new Date().toLocaleString('pt-BR')}
 Conformidade Geral: ${conformidadeFormatted}%
+
 
 ================================================================================
                         TABELA DE ANÁLISE DE CONFORMIDADE
