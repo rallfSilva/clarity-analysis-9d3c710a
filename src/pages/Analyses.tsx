@@ -152,114 +152,141 @@ export default function Analyses() {
 
   const handleDownloadReport = async (analysis: Analysis) => {
     setDownloadingId(analysis.id);
-    
+
     try {
-      toast({
-        title: 'Gerando PDF',
-        description: 'Por favor aguarde...',
-      });
+      toast({ title: 'Gerando PDF', description: 'Por favor aguarde...' });
+
+      // Fetch analyst profile for traceability
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, email')
+        .eq('id', analysis.user_id)
+        .maybeSingle();
+
+      const analystName = profile?.name || 'Analista não identificado';
+      const analystEmail = profile?.email || '—';
+      const analystShortId = analysis.user_id.slice(0, 8);
 
       const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
-      let yPosition = margin;
+      let y = margin;
 
-      // Cabeçalho
-      doc.setFontSize(18);
-      doc.setTextColor(79, 70, 229);
-      doc.text('Relatório de Análise de Conformidade', margin, yPosition);
-      yPosition += 10;
+      const ensureSpace = (needed = 8) => {
+        if (y + needed > pageHeight - margin - 10) {
+          doc.addPage();
+          y = margin;
+        }
+      };
 
-      // Linha divisória
-      doc.setDrawColor(79, 70, 229);
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 10;
-
-      // Informações do documento
-      doc.setFontSize(11);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Processo: ${analysis.processo || 'N/A'}`, margin, yPosition);
-      yPosition += 7;
-      doc.text(`Tipo de Documento: ${analysis.tipo_documento}`, margin, yPosition);
-      yPosition += 7;
-      doc.text(
-        `Data da Análise: ${format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
-        margin,
-        yPosition
-      );
-      yPosition += 7;
-      
-      if (analysis.conformidade_percentual !== null) {
+      const drawSection = (title: string) => {
+        ensureSpace(14);
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text(
-          `Conformidade: ${analysis.conformidade_percentual.toFixed(1)}%`,
-          margin,
-          yPosition
-        );
-        yPosition += 10;
-      }
+        doc.setTextColor(29, 78, 216);
+        doc.text(title, margin, y);
+        y += 2;
+        doc.setDrawColor(29, 78, 216);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y + 1, pageWidth - margin, y + 1);
+        y += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+      };
 
-      // Linha divisória
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 10;
+      const writeLine = (text: string, opts: { bold?: boolean; size?: number } = {}) => {
+        doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
+        doc.setFontSize(opts.size ?? 10);
+        const lines = doc.splitTextToSize(text, pageWidth - 2 * margin);
+        lines.forEach((line: string) => {
+          ensureSpace(6);
+          doc.text(line, margin, y);
+          y += 5;
+        });
+      };
 
-      // Conteúdo do relatório
-      doc.setFont(undefined, 'normal');
+      // Institutional header
+      doc.setFillColor(11, 31, 77);
+      doc.rect(0, 0, pageWidth, 28, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('SIAC-SELC', margin, 12);
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
-      
+      doc.text('Relatório de Análise de Conformidade', margin, 20);
+      doc.text('Lei nº 14.133/2021', pageWidth - margin, 20, { align: 'right' });
+      y = 38;
+
+      // 1. Identificação
+      drawSection('1. Identificação');
+      writeLine(`Processo: ${analysis.processo || 'N/A'}`);
+      writeLine(`Tipo de documento: ${analysis.tipo_documento}`);
+      writeLine(
+        `Data da análise: ${format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
+      );
+      writeLine(
+        `Relatório gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
+      );
+      y += 2;
+      writeLine('Analista responsável:', { bold: true });
+      writeLine(`Nome: ${analystName}`);
+      writeLine(`E-mail: ${analystEmail}`);
+      writeLine(`ID: ${analystShortId}`);
+      y += 4;
+
+      // 2. Resumo Executivo
+      drawSection('2. Resumo Executivo');
+      const statusLabel: Record<string, string> = {
+        success: 'Concluída',
+        processing: 'Em processamento',
+        pending: 'Pendente',
+        error: 'Erro',
+      };
+      writeLine(`Status final: ${statusLabel[analysis.status] ?? analysis.status}`);
+      if (analysis.conformidade_percentual !== null) {
+        writeLine(`Conformidade geral: ${analysis.conformidade_percentual.toFixed(1)}%`, {
+          bold: true,
+          size: 12,
+        });
+      }
+      y += 4;
+
+      // 3. Análise Detalhada (extraída do HTML gerado pela IA)
+      drawSection('3. Análise Detalhada');
       if (analysis.relatorio_html) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = analysis.relatorio_html;
-        const textContent = tempDiv.textContent || tempDiv.innerText || '';
-        
-        const lines = doc.splitTextToSize(textContent, pageWidth - 2 * margin);
-        
-        lines.forEach((line: string) => {
-          if (yPosition > pageHeight - margin - 15) {
-            doc.addPage();
-            yPosition = margin;
-          }
-          doc.text(line, margin, yPosition);
-          yPosition += 5;
-        });
+        const textContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
+        writeLine(textContent);
+      } else {
+        writeLine('Relatório detalhado não disponível.');
       }
 
-      // Rodapé
+      // Footer with pagination and timestamp
       const totalPages = doc.internal.pages.length - 1;
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
+        doc.setTextColor(120, 120, 120);
         doc.text(
-          `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
+          `Analista: ${analystName} (${analystShortId}) • Gerado em ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`,
           margin,
           pageHeight - 10
         );
-        doc.text(
-          `Página ${i} de ${totalPages}`,
-          pageWidth - margin - 20,
-          pageHeight - 10
-        );
+        doc.text(`Página ${i} de ${totalPages}`, pageWidth - margin, pageHeight - 10, {
+          align: 'right',
+        });
       }
 
-      // Salvar PDF
       const fileName = `Analise_${analysis.tipo_documento.replace(/\s+/g, '_')}_${analysis.processo?.replace(/[\/\\]/g, '_') || 'Sem_Processo'}_${format(new Date(analysis.created_at), 'ddMMyyyy')}.pdf`;
       doc.save(fileName);
 
-      toast({
-        title: 'Sucesso',
-        description: 'Relatório baixado com sucesso',
-      });
+      toast({ title: 'Sucesso', description: 'Relatório baixado com sucesso' });
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       toast({
