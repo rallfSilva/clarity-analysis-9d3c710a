@@ -390,9 +390,16 @@ export default function Analyses() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => {
+                          onClick={async () => {
                             setSelectedAnalysis(analysis);
+                            setSelectedAnalyst(null);
                             setReportDialogOpen(true);
+                            const { data: p } = await supabase
+                              .from('profiles')
+                              .select('name, email')
+                              .eq('id', analysis.user_id)
+                              .maybeSingle();
+                            if (p) setSelectedAnalyst({ name: p.name, email: p.email });
                           }}
                           title="Ver relatório"
                           aria-label={`Ver relatório da análise ${analysis.processo}`}
