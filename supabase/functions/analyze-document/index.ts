@@ -89,6 +89,18 @@ serve(async (req) => {
       throw new Error('Análise não encontrada');
     }
 
+    // Fetch analyst profile for traceability
+    const { data: analystProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', analysis.user_id)
+      .maybeSingle();
+    const analyst = {
+      name: analystProfile?.name || 'Analista não identificado',
+      email: analystProfile?.email || '—',
+      shortId: analysis.user_id.slice(0, 8),
+    };
+
     console.log('Starting analysis for:', analysis.tipo_documento, 'Process:', analysis.processo);
 
     // Update status to processing
