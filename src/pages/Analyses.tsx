@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Eye, Download, Trash2, Filter, Loader2 } from 'lucide-react';
+import { AnalysisProgress } from '@/components/AnalysisProgress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -359,8 +360,22 @@ export default function Analyses() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   Nenhuma análise encontrada
-                </TableCell>
-              </TableRow>
+                  </TableCell>
+                </TableRow>
+                {(analysis.status === 'pending' || analysis.status === 'processing') && (
+                  <TableRow key={`${analysis.id}-progress`}>
+                    <TableCell colSpan={6} className="bg-muted/30">
+                      <AnalysisProgress
+                        step={analysis.status === 'processing' ? 3 : 2}
+                        label={
+                          analysis.status === 'processing'
+                            ? 'IA analisando o documento…'
+                            : 'Aguardando início do processamento…'
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                )}
             ) : (
               filteredAnalyses.map((analysis) => (
                 <TableRow key={analysis.id}>
