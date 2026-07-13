@@ -631,13 +631,21 @@ Lei nº 14.133/2021 • Decreto nº 39.050-E/2025
 }
 
 // Generate generic HTML report (for other document types)
-function generateGenericHtmlReport(analysis: any, resultado: any): string {
+function generateGenericHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   return `
     <div style="font-family: Inter, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem;">
       <h1 style="color: hsl(250, 60%, 55%); border-bottom: 2px solid hsl(250, 60%, 55%); padding-bottom: 1rem;">
         Relatório de Análise de Conformidade
       </h1>
-      
+
+      <div style="background: hsl(220, 30%, 97%); padding: 1rem 1.5rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid hsl(224, 76%, 48%);">
+        <h2 style="color: hsl(224, 60%, 30%); margin: 0 0 0.5rem 0; font-size: 1.1rem;">Analista Responsável</h2>
+        <p style="margin: 0.25rem 0;"><strong>Nome:</strong> ${analyst.name}</p>
+        <p style="margin: 0.25rem 0;"><strong>E-mail:</strong> ${analyst.email}</p>
+        <p style="margin: 0.25rem 0;"><strong>ID:</strong> ${analyst.shortId}</p>
+        <p style="margin: 0.25rem 0;"><strong>Relatório emitido em:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+      </div>
+
       <div style="background: hsl(250, 60%, 97%); padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
         <h2 style="color: hsl(250, 60%, 35%); margin-top: 0;">Informações do Documento</h2>
         <p><strong>Processo:</strong> ${analysis.processo}</p>
@@ -645,6 +653,7 @@ function generateGenericHtmlReport(analysis: any, resultado: any): string {
         <p><strong>Data da Análise:</strong> ${new Date().toLocaleString('pt-BR')}</p>
         <p><strong>Conformidade Geral:</strong> ${resultado.conformidade_percentual?.toFixed(1) || '0.0'}%</p>
       </div>
+
 
       <div style="margin: 2rem 0;">
         <h2 style="color: hsl(250, 60%, 35%);">Resumo Executivo</h2>
@@ -695,15 +704,22 @@ function generateGenericHtmlReport(analysis: any, resultado: any): string {
 }
 
 // Generate generic text report (for other document types)
-function generateGenericTextReport(analysis: any, resultado: any): string {
+function generateGenericTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   return `
 RELATÓRIO DE ANÁLISE DE CONFORMIDADE
+
+ANALISTA RESPONSÁVEL
+Nome: ${analyst.name}
+E-mail: ${analyst.email}
+ID: ${analyst.shortId}
+Relatório emitido em: ${new Date().toLocaleString('pt-BR')}
 
 INFORMAÇÕES DO DOCUMENTO
 Processo: ${analysis.processo}
 Tipo: ${analysis.tipo_documento}
 Data da Análise: ${new Date().toLocaleString('pt-BR')}
 Conformidade Geral: ${resultado.conformidade_percentual?.toFixed(1) || '0.0'}%
+
 
 RESUMO EXECUTIVO
 ${resultado.resumo_executivo}
