@@ -446,7 +446,6 @@ export default function Analyses() {
                 ) : null,
               ])
             )}
-            )}
           </TableBody>
         </Table>
       </div>
