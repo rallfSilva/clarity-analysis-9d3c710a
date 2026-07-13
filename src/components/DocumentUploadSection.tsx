@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { Upload as UploadIcon, FileText, Loader2, CheckCircle2, CheckCircle } from 'lucide-react';
@@ -14,6 +14,7 @@ import type { DocumentType } from '@/lib/documentContent';
 import { FUNDAMENTACAO_JURIDICA } from '@/lib/documentContent';
 import { Scale } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { AnalysisProgress, type AnalysisStep } from './AnalysisProgress';
 
 interface DocumentUploadSectionProps {
   tipo: DocumentType;
@@ -34,6 +35,30 @@ export function DocumentUploadSection({
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [processo, setProcesso] = useState('');
+  const [step, setStep] = useState<AnalysisStep>(0);
+  const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState(false);
+
+  // Realtime tracking of the ongoing analysis
+  useEffect(() => {
+    if (!currentAnalysisId) return;
+    const channel = supabase
+      .channel(`analysis-${currentAnalysisId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'analyses', filter: `id=eq.${currentAnalysisId}` },
+        (payload) => {
+          const s = (payload.new as any).status;
+          if (s === 'processing') setStep(3);
+          if (s === 'success') setStep(4);
+          if (s === 'error') setAnalysisError(true);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentAnalysisId]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
