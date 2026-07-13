@@ -244,8 +244,8 @@ serve(async (req) => {
       console.log('ETP Analysis result parsed, conformidade:', resultado.conformidade_percentual);
 
       // Generate ETP-specific HTML report with table format
-      relatorio_html = generateETPHtmlReport(analysis, resultado);
-      relatorio_texto = generateETPTextReport(analysis, resultado);
+      relatorio_html = generateETPHtmlReport(analysis, resultado, analyst);
+      relatorio_texto = generateETPTextReport(analysis, resultado, analyst);
       
     } else {
       // Use generic analysis for other document types
@@ -348,8 +348,8 @@ Forneça também:
       resultado = JSON.parse(toolCall.function.arguments);
 
       // Generate generic HTML report
-      relatorio_html = generateGenericHtmlReport(analysis, resultado);
-      relatorio_texto = generateGenericTextReport(analysis, resultado);
+      relatorio_html = generateGenericHtmlReport(analysis, resultado, analyst);
+      relatorio_texto = generateGenericTextReport(analysis, resultado, analyst);
     }
 
     // Update analysis with results
@@ -423,7 +423,7 @@ function getConformityStyle(conformidade: string) {
 }
 
 // Generate ETP-specific HTML report
-function generateETPHtmlReport(analysis: any, resultado: any): string {
+function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableRows = resultado.tabela_analise?.map((item: any) => {
