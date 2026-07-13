@@ -471,6 +471,17 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
         </div>
       </div>
 
+      <!-- Analyst Identification -->
+      <div style="background: hsl(220, 30%, 97%); padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid hsl(224, 76%, 48%);">
+        <p style="margin: 0 0 0.5rem 0; font-weight: 600; color: hsl(224, 60%, 30%);">Analista Responsável</p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1rem; font-size: 0.9rem; color: hsl(220, 20%, 30%);">
+          <p style="margin: 0;"><strong>Nome:</strong> ${analyst.name}</p>
+          <p style="margin: 0;"><strong>E-mail:</strong> ${analyst.email}</p>
+          <p style="margin: 0;"><strong>ID:</strong> ${analyst.shortId}</p>
+          <p style="margin: 0;"><strong>Relatório emitido em:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+        </div>
+      </div>
+
       <!-- Analysis Table -->
       <div style="margin-bottom: 2rem;">
         <h2 style="color: hsl(250, 60%, 45%); font-size: 1.25rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid hsl(250, 60%, 90%);">
