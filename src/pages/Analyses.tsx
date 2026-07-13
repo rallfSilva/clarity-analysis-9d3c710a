@@ -360,24 +360,10 @@ export default function Analyses() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   Nenhuma análise encontrada
-                  </TableCell>
-                </TableRow>
-                {(analysis.status === 'pending' || analysis.status === 'processing') && (
-                  <TableRow key={`${analysis.id}-progress`}>
-                    <TableCell colSpan={6} className="bg-muted/30">
-                      <AnalysisProgress
-                        step={analysis.status === 'processing' ? 3 : 2}
-                        label={
-                          analysis.status === 'processing'
-                            ? 'IA analisando o documento…'
-                            : 'Aguardando início do processamento…'
-                        }
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
+                </TableCell>
+              </TableRow>
             ) : (
-              filteredAnalyses.map((analysis) => (
+              filteredAnalyses.flatMap((analysis) => [
                 <TableRow key={analysis.id}>
                   <TableCell className="font-medium">
                     {format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
@@ -443,8 +429,23 @@ export default function Analyses() {
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
-              ))
+                </TableRow>,
+                (analysis.status === 'pending' || analysis.status === 'processing') ? (
+                  <TableRow key={`${analysis.id}-progress`}>
+                    <TableCell colSpan={6} className="bg-muted/30">
+                      <AnalysisProgress
+                        step={analysis.status === 'processing' ? 3 : 2}
+                        label={
+                          analysis.status === 'processing'
+                            ? 'IA analisando o documento…'
+                            : 'Aguardando início do processamento…'
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : null,
+              ])
+            )}
             )}
           </TableBody>
         </Table>
