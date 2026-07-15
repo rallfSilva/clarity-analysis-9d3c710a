@@ -341,26 +341,16 @@ export default function Analyses() {
 
       {/* Report Dialog */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-6">
+          <DialogHeader className="sr-only">
             <DialogTitle>Relatório de Análise</DialogTitle>
           </DialogHeader>
           {selectedAnalysis && (
-            <div className="mb-4 rounded-lg border border-border bg-muted/30 p-4 text-sm">
-              <p className="font-semibold text-foreground mb-2">Analista responsável</p>
-              <div className="grid gap-1 sm:grid-cols-2 text-muted-foreground">
-                <p><span className="font-medium text-foreground">Nome:</span> {selectedAnalyst?.name ?? '—'}</p>
-                <p><span className="font-medium text-foreground">E-mail:</span> {selectedAnalyst?.email ?? '—'}</p>
-                <p><span className="font-medium text-foreground">ID:</span> {selectedAnalysis.user_id.slice(0, 8)}</p>
-                <p><span className="font-medium text-foreground">Gerado em:</span> {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-              </div>
-            </div>
-          )}
-          {selectedAnalysis?.relatorio_html && (
-            <div dangerouslySetInnerHTML={{ __html: selectedAnalysis.relatorio_html }} />
+            <ReportView analysis={selectedAnalysis} analyst={selectedAnalyst} />
           )}
         </DialogContent>
       </Dialog>
+
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
