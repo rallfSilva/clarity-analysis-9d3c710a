@@ -3,6 +3,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Eye, Download, Trash2, Filter, Loader2 } from 'lucide-react';
 import { AnalysisProgress } from '@/components/AnalysisProgress';
+import { ReportView } from '@/components/reports/ReportView';
+import { normalizeReport } from '@/lib/reportUtils';
+import { exportReportPDF } from '@/lib/reportPdf';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,8 +48,10 @@ interface Analysis {
   created_at: string;
   completed_at: string | null;
   relatorio_html: string | null;
+  resultado_json: any;
   user_id: string;
 }
+
 
 export default function Analyses() {
   const { user } = useAuth();
@@ -154,152 +159,28 @@ export default function Analyses() {
 
   const handleDownloadReport = async (analysis: Analysis) => {
     setDownloadingId(analysis.id);
-
     try {
       toast({ title: 'Gerando PDF', description: 'Por favor aguarde...' });
-
-      // Fetch analyst profile for traceability
       const { data: profile } = await supabase
         .from('profiles')
         .select('name, email')
         .eq('id', analysis.user_id)
         .maybeSingle();
-
-      const analystName = profile?.name || 'Analista não identificado';
-      const analystEmail = profile?.email || '—';
-      const analystShortId = analysis.user_id.slice(0, 8);
-
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 20;
-      let y = margin;
-
-      const ensureSpace = (needed = 8) => {
-        if (y + needed > pageHeight - margin - 10) {
-          doc.addPage();
-          y = margin;
-        }
+      const analyst = {
+        name: profile?.name || 'Analista não identificado',
+        email: profile?.email || '—',
       };
-
-      const drawSection = (title: string) => {
-        ensureSpace(14);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(29, 78, 216);
-        doc.text(title, margin, y);
-        y += 2;
-        doc.setDrawColor(29, 78, 216);
-        doc.setLineWidth(0.3);
-        doc.line(margin, y + 1, pageWidth - margin, y + 1);
-        y += 6;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-      };
-
-      const writeLine = (text: string, opts: { bold?: boolean; size?: number } = {}) => {
-        doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
-        doc.setFontSize(opts.size ?? 10);
-        const lines = doc.splitTextToSize(text, pageWidth - 2 * margin);
-        lines.forEach((line: string) => {
-          ensureSpace(6);
-          doc.text(line, margin, y);
-          y += 5;
-        });
-      };
-
-      // Institutional header
-      doc.setFillColor(11, 31, 77);
-      doc.rect(0, 0, pageWidth, 28, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.text('SIAC-SELC', margin, 12);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text('Relatório de Análise de Conformidade', margin, 20);
-      doc.text('Lei nº 14.133/2021', pageWidth - margin, 20, { align: 'right' });
-      y = 38;
-
-      // 1. Identificação
-      drawSection('1. Identificação');
-      writeLine(`Processo: ${analysis.processo || 'N/A'}`);
-      writeLine(`Tipo de documento: ${analysis.tipo_documento}`);
-      writeLine(
-        `Data da análise: ${format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
-      );
-      writeLine(
-        `Relatório gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
-      );
-      y += 2;
-      writeLine('Analista responsável:', { bold: true });
-      writeLine(`Nome: ${analystName}`);
-      writeLine(`E-mail: ${analystEmail}`);
-      writeLine(`ID: ${analystShortId}`);
-      y += 4;
-
-      // 2. Resumo Executivo
-      drawSection('2. Resumo Executivo');
-      const statusLabel: Record<string, string> = {
-        success: 'Concluída',
-        processing: 'Em processamento',
-        pending: 'Pendente',
-        error: 'Erro',
-      };
-      writeLine(`Status final: ${statusLabel[analysis.status] ?? analysis.status}`);
-      if (analysis.conformidade_percentual !== null) {
-        writeLine(`Conformidade geral: ${analysis.conformidade_percentual.toFixed(1)}%`, {
-          bold: true,
-          size: 12,
-        });
-      }
-      y += 4;
-
-      // 3. Análise Detalhada (extraída do HTML gerado pela IA)
-      drawSection('3. Análise Detalhada');
-      if (analysis.relatorio_html) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = analysis.relatorio_html;
-        const textContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
-        writeLine(textContent);
-      } else {
-        writeLine('Relatório detalhado não disponível.');
-      }
-
-      // Footer with pagination and timestamp
-      const totalPages = doc.internal.pages.length - 1;
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(120, 120, 120);
-        doc.text(
-          `Analista: ${analystName} (${analystShortId}) • Gerado em ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`,
-          margin,
-          pageHeight - 10
-        );
-        doc.text(`Página ${i} de ${totalPages}`, pageWidth - margin, pageHeight - 10, {
-          align: 'right',
-        });
-      }
-
-      const fileName = `Analise_${analysis.tipo_documento.replace(/\s+/g, '_')}_${analysis.processo?.replace(/[\/\\]/g, '_') || 'Sem_Processo'}_${format(new Date(analysis.created_at), 'ddMMyyyy')}.pdf`;
-      doc.save(fileName);
-
+      const report = normalizeReport(analysis.resultado_json);
+      await exportReportPDF(analysis, analyst, report);
       toast({ title: 'Sucesso', description: 'Relatório baixado com sucesso' });
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível gerar o PDF',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Não foi possível gerar o PDF', variant: 'destructive' });
     } finally {
       setDownloadingId(null);
     }
   };
+
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { label: string; className: string }> = {
@@ -460,26 +341,16 @@ export default function Analyses() {
 
       {/* Report Dialog */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-6">
+          <DialogHeader className="sr-only">
             <DialogTitle>Relatório de Análise</DialogTitle>
           </DialogHeader>
           {selectedAnalysis && (
-            <div className="mb-4 rounded-lg border border-border bg-muted/30 p-4 text-sm">
-              <p className="font-semibold text-foreground mb-2">Analista responsável</p>
-              <div className="grid gap-1 sm:grid-cols-2 text-muted-foreground">
-                <p><span className="font-medium text-foreground">Nome:</span> {selectedAnalyst?.name ?? '—'}</p>
-                <p><span className="font-medium text-foreground">E-mail:</span> {selectedAnalyst?.email ?? '—'}</p>
-                <p><span className="font-medium text-foreground">ID:</span> {selectedAnalysis.user_id.slice(0, 8)}</p>
-                <p><span className="font-medium text-foreground">Gerado em:</span> {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-              </div>
-            </div>
-          )}
-          {selectedAnalysis?.relatorio_html && (
-            <div dangerouslySetInnerHTML={{ __html: selectedAnalysis.relatorio_html }} />
+            <ReportView analysis={selectedAnalysis} analyst={selectedAnalyst} />
           )}
         </DialogContent>
       </Dialog>
+
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
