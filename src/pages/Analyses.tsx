@@ -48,8 +48,10 @@ interface Analysis {
   created_at: string;
   completed_at: string | null;
   relatorio_html: string | null;
+  resultado_json: any;
   user_id: string;
 }
+
 
 export default function Analyses() {
   const { user } = useAuth();
