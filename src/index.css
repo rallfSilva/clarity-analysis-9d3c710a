@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* SIAC-SELC Institutional Design System. All colors in HSL. */
+/* SIAC Institutional Design System. All colors in HSL. */
 
 @layer base {
   :root {

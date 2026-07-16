@@ -128,7 +128,7 @@ export default function Reports() {
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.text('Relatório Consolidado - SIAC-SELC', margin, 35);
+      doc.text('Relatório Consolidado - SIAC', margin, 35);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(
@@ -216,7 +216,7 @@ export default function Reports() {
         doc.setFontSize(9);
         doc.setTextColor(120, 120, 120);
         doc.text(
-          `SIAC-SELC © ${new Date().getFullYear()} - Página ${i}/${pageCount}`,
+          `SIAC © ${new Date().getFullYear()} - Página ${i}/${pageCount}`,
           pageWidth / 2,
           pageHeight - 20,
           { align: 'center' }

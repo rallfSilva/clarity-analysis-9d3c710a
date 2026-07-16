@@ -310,7 +310,7 @@ export function DocumentUploadSection({
           <Label htmlFor="processo">Número do Processo *</Label>
           <Input
             id="processo"
-            placeholder="Ex: SELC-2025-0001"
+            placeholder="Ex: SIAC-2025-0001"
             value={processo}
             onChange={(e) => setProcesso(e.target.value)}
             required

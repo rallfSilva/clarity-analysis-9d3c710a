@@ -1,5 +1,5 @@
 import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown } from 'lucide-react';
-import siacSelcLogo from '@/assets/siac-selc-logo.png';
+import siacLogo from '@/assets/siac-logo.png';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,8 +64,8 @@ export function AppSidebar() {
       <SidebarContent className="bg-sidebar">
         <div className="px-4 py-4 flex items-center justify-center">
           <img
-            src={siacSelcLogo}
-            alt="SIAC SELC"
+            src={siacLogo}
+            alt="SIAC"
             className={state === 'collapsed' ? 'h-12 w-12 object-contain' : 'h-32 w-full object-contain'}
           />
         </div>

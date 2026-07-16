@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Shield, Zap, BarChart } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
-import siacSelcLogo from '@/assets/siac-selc-logo.png';
+import siacLogo from '@/assets/siac-logo.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -30,8 +30,8 @@ const Index = () => {
         <div className="text-center space-y-8 max-w-4xl mx-auto">
           <div className="flex justify-center">
             <img
-              src={siacSelcLogo}
-              alt="SIAC SELC"
+              src={siacLogo}
+              alt="SIAC"
               className="h-40 md:h-56 w-auto object-contain drop-shadow-xl"
             />
           </div>
