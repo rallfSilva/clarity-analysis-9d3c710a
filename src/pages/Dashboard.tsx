@@ -35,7 +35,7 @@ const Dashboard = () => {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Olá, {name} 👋</h1>
         <p className="text-muted-foreground mt-1">
-          Visão geral das análises de conformidade no SIAC-SELC.
+          Visão geral das análises de conformidade no SIAC.
         </p>
       </div>
 
@@ -57,8 +57,8 @@ const Dashboard = () => {
       </div>
 
       <div className="text-center text-xs text-muted-foreground py-4 border-t border-border/60">
-        Sistema Integrado de Analise de Conformidades da SELC<br />
-        SIAC-SELC © 2026
+        Sistema Integrado de Análise de Conformidades<br />
+        SIAC © 2026
       </div>
     </div>
   );

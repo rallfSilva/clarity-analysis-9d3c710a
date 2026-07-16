@@ -65,7 +65,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
-  doc.text('SIAC-SELC', margin, 13);
+  doc.text('SIAC', margin, 13);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text('Sistema Integrado de Análise de Conformidades', margin, 19);
