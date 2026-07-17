@@ -115,12 +115,33 @@ export default function Analyses() {
   }, [user, isAdmin]);
 
   useEffect(() => {
-    const filtered = analyses.filter((analysis) =>
-      analysis.processo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.tipo_documento.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredAnalyses(filtered);
-  }, [searchTerm, analyses]);
+    const errored = analyses.filter((a) => a.status === 'error');
+    if (!initializedErrorsRef.current) {
+      // First load: mark existing errors as already seen so we don't spam
+      errored.forEach((a) => seenErrorIdsRef.current.add(a.id));
+      initializedErrorsRef.current = true;
+      return;
+    }
+    const newErrors = errored.filter((a) => !seenErrorIdsRef.current.has(a.id));
+    if (newErrors.length > 0) {
+      newErrors.forEach((a) => {
+        seenErrorIdsRef.current.add(a.id);
+        toast({
+          title: 'Falha na análise',
+          description: `Processo ${a.processo} não pôde ser analisado.`,
+          variant: 'destructive',
+        });
+      });
+      // Open dialog for the most recent failed analysis
+      openErrorDialog(newErrors[0]);
+    }
+  }, [analyses, toast]);
+
+  const filteredAnalyses = analyses.filter((analysis) =>
+    analysis.processo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    analysis.tipo_documento.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const fetchAnalyses = async () => {
     try {
