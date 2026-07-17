@@ -345,7 +345,18 @@ export default function Analyses() {
                             <Download className="h-4 w-4 text-primary" />
                           )}
                         </Button>
+                      {analysis.status === 'error' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openErrorDialog(analysis)}
+                          title="Ver detalhes do erro"
+                          aria-label={`Ver detalhes do erro da análise ${analysis.processo}`}
+                        >
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                        </Button>
                       )}
+
                       <Button
                         size="sm"
                         variant="ghost"
