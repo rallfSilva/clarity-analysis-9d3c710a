@@ -345,7 +345,9 @@ export default function Analyses() {
                             <Download className="h-4 w-4 text-primary" />
                           )}
                         </Button>
+                      )}
                       {analysis.status === 'error' && (
+
                         <Button
                           size="sm"
                           variant="ghost"
