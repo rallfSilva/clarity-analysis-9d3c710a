@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Eye, Download, Trash2, Filter, Loader2 } from 'lucide-react';
+import { Eye, Download, Trash2, Filter, Loader2, AlertCircle } from 'lucide-react';
+
 import { AnalysisProgress } from '@/components/AnalysisProgress';
 import { ReportView } from '@/components/reports/ReportView';
 import { normalizeReport } from '@/lib/reportUtils';
