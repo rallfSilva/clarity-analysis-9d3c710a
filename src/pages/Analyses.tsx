@@ -422,6 +422,67 @@ export default function Analyses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Error Details Dialog */}
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Falha na análise do documento
+            </DialogTitle>
+          </DialogHeader>
+          {errorAnalysis && (
+            <div className="space-y-4 text-sm">
+              <div className="rounded-md border border-border p-3 space-y-1">
+                <p><span className="font-medium text-muted-foreground">Processo:</span> {errorAnalysis.processo}</p>
+                <p><span className="font-medium text-muted-foreground">Tipo:</span> {errorAnalysis.tipo_documento}</p>
+                <p><span className="font-medium text-muted-foreground">Data/Hora:</span> {format(new Date(errorAnalysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+              </div>
+
+              <div>
+                <p className="font-medium mb-1">O que aconteceu?</p>
+                <p className="text-muted-foreground">
+                  Não foi possível concluir a análise deste documento. O sistema
+                  encontrou uma falha durante o processamento.
+                </p>
+              </div>
+
+              <details className="rounded-md border border-border p-3">
+                <summary className="cursor-pointer font-medium text-sm">Detalhes técnicos</summary>
+                <p className="mt-2 text-xs text-muted-foreground break-words whitespace-pre-wrap">
+                  {extractErrorMessage(errorAnalysis)}
+                </p>
+              </details>
+
+              <div>
+                <p className="font-medium mb-1">Próximos passos sugeridos</p>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  <li>Verifique se o arquivo é um PDF ou DOCX válido e legível.</li>
+                  <li>Reenvie o documento pela aba "Nova Análise".</li>
+                  <li>Se o erro persistir, exclua a análise e contate o administrador.</li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setAnalysisToDelete(errorAnalysis.id);
+                    setErrorDialogOpen(false);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir análise
+                </Button>
+                <Button onClick={() => setErrorDialogOpen(false)}>Fechar</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 }
