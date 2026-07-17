@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Eye, Download, Trash2, Filter, Loader2 } from 'lucide-react';
+import { Eye, Download, Trash2, Filter, Loader2, AlertCircle } from 'lucide-react';
+
 import { AnalysisProgress } from '@/components/AnalysisProgress';
 import { ReportView } from '@/components/reports/ReportView';
 import { normalizeReport } from '@/lib/reportUtils';
@@ -58,7 +59,7 @@ export default function Analyses() {
   const { isAdmin } = useUserRole();
   const { toast } = useToast();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
-  const [filteredAnalyses, setFilteredAnalyses] = useState<Analysis[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
@@ -67,6 +68,26 @@ export default function Analyses() {
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [selectedAnalyst, setSelectedAnalyst] = useState<{ name: string; email: string } | null>(null);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorAnalysis, setErrorAnalysis] = useState<Analysis | null>(null);
+  const seenErrorIdsRef = useRef<Set<string>>(new Set());
+  const initializedErrorsRef = useRef(false);
+
+  const openErrorDialog = (analysis: Analysis) => {
+    setErrorAnalysis(analysis);
+    setErrorDialogOpen(true);
+  };
+
+  const extractErrorMessage = (analysis: Analysis | null): string => {
+    if (!analysis) return 'Erro não especificado pelo servidor.';
+    const r: any = analysis.resultado_json;
+    if (r && typeof r === 'object') {
+      return r.error || r.message || r.erro || 'Erro não especificado pelo servidor.';
+    }
+    if (typeof r === 'string') return r;
+    return 'Erro não especificado pelo servidor.';
+  };
+
 
   useEffect(() => {
     fetchAnalyses();
@@ -94,12 +115,33 @@ export default function Analyses() {
   }, [user, isAdmin]);
 
   useEffect(() => {
-    const filtered = analyses.filter((analysis) =>
-      analysis.processo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.tipo_documento.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredAnalyses(filtered);
-  }, [searchTerm, analyses]);
+    const errored = analyses.filter((a) => a.status === 'error');
+    if (!initializedErrorsRef.current) {
+      // First load: mark existing errors as already seen so we don't spam
+      errored.forEach((a) => seenErrorIdsRef.current.add(a.id));
+      initializedErrorsRef.current = true;
+      return;
+    }
+    const newErrors = errored.filter((a) => !seenErrorIdsRef.current.has(a.id));
+    if (newErrors.length > 0) {
+      newErrors.forEach((a) => {
+        seenErrorIdsRef.current.add(a.id);
+        toast({
+          title: 'Falha na análise',
+          description: `Processo ${a.processo} não pôde ser analisado.`,
+          variant: 'destructive',
+        });
+      });
+      // Open dialog for the most recent failed analysis
+      openErrorDialog(newErrors[0]);
+    }
+  }, [analyses, toast]);
+
+  const filteredAnalyses = analyses.filter((analysis) =>
+    analysis.processo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    analysis.tipo_documento.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const fetchAnalyses = async () => {
     try {
@@ -304,6 +346,19 @@ export default function Analyses() {
                           )}
                         </Button>
                       )}
+                      {analysis.status === 'error' && (
+
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openErrorDialog(analysis)}
+                          title="Ver detalhes do erro"
+                          aria-label={`Ver detalhes do erro da análise ${analysis.processo}`}
+                        >
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+
                       <Button
                         size="sm"
                         variant="ghost"
@@ -367,6 +422,67 @@ export default function Analyses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Error Details Dialog */}
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Falha na análise do documento
+            </DialogTitle>
+          </DialogHeader>
+          {errorAnalysis && (
+            <div className="space-y-4 text-sm">
+              <div className="rounded-md border border-border p-3 space-y-1">
+                <p><span className="font-medium text-muted-foreground">Processo:</span> {errorAnalysis.processo}</p>
+                <p><span className="font-medium text-muted-foreground">Tipo:</span> {errorAnalysis.tipo_documento}</p>
+                <p><span className="font-medium text-muted-foreground">Data/Hora:</span> {format(new Date(errorAnalysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+              </div>
+
+              <div>
+                <p className="font-medium mb-1">O que aconteceu?</p>
+                <p className="text-muted-foreground">
+                  Não foi possível concluir a análise deste documento. O sistema
+                  encontrou uma falha durante o processamento.
+                </p>
+              </div>
+
+              <details className="rounded-md border border-border p-3">
+                <summary className="cursor-pointer font-medium text-sm">Detalhes técnicos</summary>
+                <p className="mt-2 text-xs text-muted-foreground break-words whitespace-pre-wrap">
+                  {extractErrorMessage(errorAnalysis)}
+                </p>
+              </details>
+
+              <div>
+                <p className="font-medium mb-1">Próximos passos sugeridos</p>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  <li>Verifique se o arquivo é um PDF ou DOCX válido e legível.</li>
+                  <li>Reenvie o documento pela aba "Nova Análise".</li>
+                  <li>Se o erro persistir, exclua a análise e contate o administrador.</li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setAnalysisToDelete(errorAnalysis.id);
+                    setErrorDialogOpen(false);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir análise
+                </Button>
+                <Button onClick={() => setErrorDialogOpen(false)}>Fechar</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 }
