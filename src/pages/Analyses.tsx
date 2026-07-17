@@ -68,6 +68,26 @@ export default function Analyses() {
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [selectedAnalyst, setSelectedAnalyst] = useState<{ name: string; email: string } | null>(null);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorAnalysis, setErrorAnalysis] = useState<Analysis | null>(null);
+  const seenErrorIdsRef = useRef<Set<string>>(new Set());
+  const initializedErrorsRef = useRef(false);
+
+  const openErrorDialog = (analysis: Analysis) => {
+    setErrorAnalysis(analysis);
+    setErrorDialogOpen(true);
+  };
+
+  const extractErrorMessage = (analysis: Analysis | null): string => {
+    if (!analysis) return 'Erro não especificado pelo servidor.';
+    const r: any = analysis.resultado_json;
+    if (r && typeof r === 'object') {
+      return r.error || r.message || r.erro || 'Erro não especificado pelo servidor.';
+    }
+    if (typeof r === 'string') return r;
+    return 'Erro não especificado pelo servidor.';
+  };
+
 
   useEffect(() => {
     fetchAnalyses();
