@@ -59,7 +59,7 @@ export default function Analyses() {
   const { isAdmin } = useUserRole();
   const { toast } = useToast();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
-  const [filteredAnalyses, setFilteredAnalyses] = useState<Analysis[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
