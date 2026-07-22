@@ -23,6 +23,20 @@ const ETP_CHECKLIST = [
   { codigo: 'ETP-13', descricao: 'Justificativa para o parcelamento ou não da contratação' },
 ];
 
+// Checklist específico para DFD do PCA (Decreto nº 39.050-E/2025 e Decreto nº 36.203-E/2024)
+const DFD_PCA_CHECKLIST = [
+  { codigo: 'DFD-PCA-01', descricao: 'Consta Documento de Formalização de Demanda - DFD elaborado pelo servidor ou setor competente (Art. 5º do Decreto Nº 39.050-E/2025)' },
+  { codigo: 'DFD-PCA-02', descricao: 'Justificativa da necessidade de contratação (Art. 5º, §1º, I, Decreto nº 39.050-E/2025; Art. 6º, I, Decreto nº 36.203-E/2024 e Lei 14.133/21)' },
+  { codigo: 'DFD-PCA-03', descricao: 'Descrição sucinta da demanda (Art. 5º, §1º, II, Decreto nº 39.050-E/2025; Art. 6º, II, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-04', descricao: 'Quantidade estimada da contratação, considerada a expectativa de consumo anual (Art. 5º, §1º, III, Decreto nº 39.050-E/2025; Art. 6º, III, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-05', descricao: 'Estimativa preliminar do valor da contratação, por procedimento simplificado, com valor unitário e total (Art. 5º, §1º, IV, Decreto nº 39.050-E/2025; Art. 6º, IV, "a", Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-06', descricao: 'Indicação da data pretendida para conclusão da contratação, evitando prejuízos ou descontinuidade (Art. 5º, §1º, V, Decreto nº 39.050-E/2025; Art. 6º, V, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-07', descricao: 'Grau de prioridade (baixo, médio ou alto), com justificativa expressa e aprovação da autoridade competente quando classificado como alto (Art. 5º, §1º, VI, Decreto nº 39.050-E/2025; Art. 6º, VI, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-08', descricao: 'Certificação da existência de correlação ou interdependência com outro DFD, definindo a sequência das contratações (Art. 5º, §1º, VII, Decreto nº 39.050-E/2025; Art. 6º, VII, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-09', descricao: 'Nome da área requisitante ou técnica com a identificação do responsável (Art. 5º, §1º, VIII, Decreto nº 39.050-E/2025; Art. 6º, VIII, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-10', descricao: 'Assinaturas eletrônicas válidas de todos os responsáveis no formato "Documento assinado eletronicamente por [NOME]" + DATA' },
+];
+
 // Prompt específico para análise de ETP
 const ETP_SYSTEM_PROMPT = `Você atuará como um analista técnico especializado em licitações públicas sob a Lei nº 14.133/2021.
 
@@ -58,6 +72,43 @@ Ao final, forneça uma CONCLUSÃO TÉCNICA DO ETP contendo:
 - Pontos fortes identificados no documento
 - Ausências críticas ou itens que necessitam correção
 - Parecer final sobre se o ETP é suficiente para subsidiar a contratação pública pretendida
+`;
+
+// Prompt específico para análise de DFD do PCA
+const DFD_PCA_SYSTEM_PROMPT = `Você é especialista em análise de conformidade de Documento de Formalização de Demanda (DFD) do PCA sob a Lei nº 14.133/2021, o Decreto nº 39.050-E/2025 e o Decreto nº 36.203-E/2024.
+
+Analise o DFD do PCA verificando CADA item do checklist e apontando, para cada um, a situação e as observações técnicas fundamentadas.
+
+REGRA ADICIONAL IMPORTANTE:
+- Assinatura válida = "Documento assinado eletronicamente por [NOME]" + DATA. Todos os assinantes devem apresentar esse formato para o item de assinaturas ser considerado ATENDE.
+- No item de grau de prioridade "alto", verificar se há justificativa expressa aprovada pela autoridade competente; caso contrário, classificar como ATENDE_PARCIALMENTE ou NAO_ATENDE.
+
+CLASSIFICAÇÃO:
+- ATENDE (✔️): Item completamente atendido
+- ATENDE_PARCIALMENTE (⚠️): Item parcialmente atendido, com ressalvas
+- NAO_ATENDE (❌): Item não atendido ou ausente
+- NAO_SE_APLICA (🛑): Item não aplicável ao caso concreto
+
+Fundamente tecnicamente CADA resposta com base no conteúdo do documento, citando seções/páginas quando possível.`;
+
+const DFD_PCA_USER_PROMPT = (processo: string, checklistText: string) => `
+Analise o Documento de Formalização de Demanda do PCA (DFD do PCA) anexo referente ao processo "${processo}" com base no checklist abaixo.
+
+CHECKLIST DE VERIFICAÇÃO:
+${checklistText}
+
+Além da tabela de análise detalhada por item, extraia para o Resumo do Documento:
+- Processo (somente o número)
+- Secretaria
+- Objeto
+- Base normativa
+- Responsáveis (nomes identificados no documento)
+
+Ao final, forneça a CONCLUSÃO TÉCNICA contendo:
+- Diagnóstico resumido sobre a adequação do DFD do PCA
+- Pontos fortes identificados
+- Ausências críticas ou itens que necessitam correção
+- Parecer final sobre se o DFD do PCA é suficiente para subsidiar a inclusão da contratação no Plano de Contratações Anual
 `;
 
 serve(async (req) => {
