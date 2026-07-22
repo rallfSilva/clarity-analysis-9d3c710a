@@ -494,7 +494,7 @@ function getConformityStyle(conformidade: string) {
 }
 
 // Generate ETP-specific HTML report
-function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
+function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }, docLabel: string = 'ETP'): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableRows = resultado.tabela_analise?.map((item: any) => {
@@ -517,7 +517,7 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
       <!-- Header -->
       <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 3px solid hsl(250, 60%, 55%);">
         <h1 style="color: hsl(250, 60%, 45%); margin: 0 0 0.5rem 0; font-size: 1.75rem;">
-          Relatório de Análise Técnica - ETP
+          Relatório de Análise Técnica - ${docLabel}
         </h1>
         <p style="color: hsl(250, 30%, 50%); margin: 0; font-size: 0.95rem;">
           Estudo Técnico Preliminar • Lei nº 14.133/2021
@@ -579,7 +579,7 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
       <!-- Technical Conclusion -->
       <div style="margin-top: 2rem; background: hsl(250, 60%, 98%); border-radius: 12px; padding: 1.5rem; border: 1px solid hsl(250, 40%, 90%);">
         <h2 style="color: hsl(250, 60%, 45%); font-size: 1.25rem; margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid hsl(250, 60%, 85%);">
-          Conclusão Técnica do ETP
+          Conclusão Técnica do ${docLabel}
         </h2>
         
         <div style="margin-bottom: 1.5rem;">
@@ -625,7 +625,7 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
 }
 
 // Generate ETP-specific text report
-function generateETPTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
+function generateETPTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }, docLabel: string = 'ETP'): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableContent = resultado.tabela_analise?.map((item: any) => {
@@ -646,7 +646,7 @@ ${item.numero}. ${item.codigo} - ${item.item_verificado}
 
   return `
 ================================================================================
-                    RELATÓRIO DE ANÁLISE TÉCNICA - ETP
+                    RELATÓRIO DE ANÁLISE TÉCNICA - ${docLabel}
               Estudo Técnico Preliminar • Lei nº 14.133/2021
 ================================================================================
 
@@ -671,7 +671,7 @@ Conformidade Geral: ${conformidadeFormatted}%
 ${tableContent}
 
 ================================================================================
-                           CONCLUSÃO TÉCNICA DO ETP
+                           CONCLUSÃO TÉCNICA DO ${docLabel}
 ================================================================================
 
 DIAGNÓSTICO RESUMIDO
