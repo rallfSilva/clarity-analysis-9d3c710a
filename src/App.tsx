@@ -13,6 +13,7 @@ import Analyses from "./pages/Analyses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import DFD from "./pages/upload/DFD";
+import DFDPCA from "./pages/upload/DFDPCA";
 import ETP from "./pages/upload/ETP";
 import NotaTecnica from "./pages/upload/NotaTecnica";
 import AnaliseRisco from "./pages/upload/AnaliseRisco";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
             <Route path="/upload" element={<Navigate to="/upload/dfd" replace />} />
             <Route path="/upload/dfd" element={<ProtectedRoute><DashboardLayout><DFD /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/upload/dfd-pca" element={<ProtectedRoute><DashboardLayout><DFDPCA /></DashboardLayout></ProtectedRoute>} />
             <Route path="/upload/etp" element={<ProtectedRoute><DashboardLayout><ETP /></DashboardLayout></ProtectedRoute>} />
             <Route path="/upload/nota-tecnica" element={<ProtectedRoute><DashboardLayout><NotaTecnica /></DashboardLayout></ProtectedRoute>} />
             <Route path="/upload/analise-risco" element={<ProtectedRoute><DashboardLayout><AnaliseRisco /></DashboardLayout></ProtectedRoute>} />
