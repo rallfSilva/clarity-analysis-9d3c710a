@@ -12,7 +12,7 @@ import {
   Sparkles,
   CheckCircle2,
 } from 'lucide-react';
-import siacLogo from '@/assets/siac-selc-logo.png';
+import siacLogo from '@/assets/siac-logo.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
