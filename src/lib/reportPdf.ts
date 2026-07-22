@@ -68,7 +68,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   doc.text('SIAC', margin, 13);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Sistema Integrado de Análise de Conformidades', margin, 19);
+  doc.text('Sistema integrado de análise de Conformidades', margin, 19);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.text('Relatório Executivo de Auditoria', margin, 27);
