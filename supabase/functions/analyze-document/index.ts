@@ -23,6 +23,20 @@ const ETP_CHECKLIST = [
   { codigo: 'ETP-13', descricao: 'Justificativa para o parcelamento ou não da contratação' },
 ];
 
+// Checklist específico para DFD do PCA (Decreto nº 39.050-E/2025 e Decreto nº 36.203-E/2024)
+const DFD_PCA_CHECKLIST = [
+  { codigo: 'DFD-PCA-01', descricao: 'Consta Documento de Formalização de Demanda - DFD elaborado pelo servidor ou setor competente (Art. 5º do Decreto Nº 39.050-E/2025)' },
+  { codigo: 'DFD-PCA-02', descricao: 'Justificativa da necessidade de contratação (Art. 5º, §1º, I, Decreto nº 39.050-E/2025; Art. 6º, I, Decreto nº 36.203-E/2024 e Lei 14.133/21)' },
+  { codigo: 'DFD-PCA-03', descricao: 'Descrição sucinta da demanda (Art. 5º, §1º, II, Decreto nº 39.050-E/2025; Art. 6º, II, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-04', descricao: 'Quantidade estimada da contratação, considerada a expectativa de consumo anual (Art. 5º, §1º, III, Decreto nº 39.050-E/2025; Art. 6º, III, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-05', descricao: 'Estimativa preliminar do valor da contratação, por procedimento simplificado, com valor unitário e total (Art. 5º, §1º, IV, Decreto nº 39.050-E/2025; Art. 6º, IV, "a", Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-06', descricao: 'Indicação da data pretendida para conclusão da contratação, evitando prejuízos ou descontinuidade (Art. 5º, §1º, V, Decreto nº 39.050-E/2025; Art. 6º, V, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-07', descricao: 'Grau de prioridade (baixo, médio ou alto), com justificativa expressa e aprovação da autoridade competente quando classificado como alto (Art. 5º, §1º, VI, Decreto nº 39.050-E/2025; Art. 6º, VI, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-08', descricao: 'Certificação da existência de correlação ou interdependência com outro DFD, definindo a sequência das contratações (Art. 5º, §1º, VII, Decreto nº 39.050-E/2025; Art. 6º, VII, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-09', descricao: 'Nome da área requisitante ou técnica com a identificação do responsável (Art. 5º, §1º, VIII, Decreto nº 39.050-E/2025; Art. 6º, VIII, Decreto nº 36.203-E/2024)' },
+  { codigo: 'DFD-PCA-10', descricao: 'Assinaturas eletrônicas válidas de todos os responsáveis no formato "Documento assinado eletronicamente por [NOME]" + DATA' },
+];
+
 // Prompt específico para análise de ETP
 const ETP_SYSTEM_PROMPT = `Você atuará como um analista técnico especializado em licitações públicas sob a Lei nº 14.133/2021.
 
@@ -58,6 +72,43 @@ Ao final, forneça uma CONCLUSÃO TÉCNICA DO ETP contendo:
 - Pontos fortes identificados no documento
 - Ausências críticas ou itens que necessitam correção
 - Parecer final sobre se o ETP é suficiente para subsidiar a contratação pública pretendida
+`;
+
+// Prompt específico para análise de DFD do PCA
+const DFD_PCA_SYSTEM_PROMPT = `Você é especialista em análise de conformidade de Documento de Formalização de Demanda (DFD) do PCA sob a Lei nº 14.133/2021, o Decreto nº 39.050-E/2025 e o Decreto nº 36.203-E/2024.
+
+Analise o DFD do PCA verificando CADA item do checklist e apontando, para cada um, a situação e as observações técnicas fundamentadas.
+
+REGRA ADICIONAL IMPORTANTE:
+- Assinatura válida = "Documento assinado eletronicamente por [NOME]" + DATA. Todos os assinantes devem apresentar esse formato para o item de assinaturas ser considerado ATENDE.
+- No item de grau de prioridade "alto", verificar se há justificativa expressa aprovada pela autoridade competente; caso contrário, classificar como ATENDE_PARCIALMENTE ou NAO_ATENDE.
+
+CLASSIFICAÇÃO:
+- ATENDE (✔️): Item completamente atendido
+- ATENDE_PARCIALMENTE (⚠️): Item parcialmente atendido, com ressalvas
+- NAO_ATENDE (❌): Item não atendido ou ausente
+- NAO_SE_APLICA (🛑): Item não aplicável ao caso concreto
+
+Fundamente tecnicamente CADA resposta com base no conteúdo do documento, citando seções/páginas quando possível.`;
+
+const DFD_PCA_USER_PROMPT = (processo: string, checklistText: string) => `
+Analise o Documento de Formalização de Demanda do PCA (DFD do PCA) anexo referente ao processo "${processo}" com base no checklist abaixo.
+
+CHECKLIST DE VERIFICAÇÃO:
+${checklistText}
+
+Além da tabela de análise detalhada por item, extraia para o Resumo do Documento:
+- Processo (somente o número)
+- Secretaria
+- Objeto
+- Base normativa
+- Responsáveis (nomes identificados no documento)
+
+Ao final, forneça a CONCLUSÃO TÉCNICA contendo:
+- Diagnóstico resumido sobre a adequação do DFD do PCA
+- Pontos fortes identificados
+- Ausências críticas ou itens que necessitam correção
+- Parecer final sobre se o DFD do PCA é suficiente para subsidiar a inclusão da contratação no Plano de Contratações Anual
 `;
 
 serve(async (req) => {
@@ -134,19 +185,26 @@ serve(async (req) => {
     
     console.log('File converted to base64, length:', base64.length);
 
-    // Determine if this is an ETP analysis
+    // Determine if this is a specialized analysis (ETP or DFD do PCA)
     const isETP = analysis.tipo_documento === 'ETP';
-    
+    const isDFDPCA = analysis.tipo_documento === 'DFD do PCA';
+    const isSpecialized = isETP || isDFDPCA;
+
     let resultado: any;
     let relatorio_html: string;
     let relatorio_texto: string;
 
-    if (isETP) {
-      // Use specialized ETP analysis
-      console.log('Using specialized ETP analysis prompt');
-      
-      const checklistText = ETP_CHECKLIST.map(item => `- ${item.codigo}: ${item.descricao}`).join('\n');
-      
+    if (isSpecialized) {
+      // Use specialized analysis (ETP or DFD do PCA)
+      const docLabel = isETP ? 'ETP' : 'DFD do PCA';
+      const checklistDef = isETP ? ETP_CHECKLIST : DFD_PCA_CHECKLIST;
+      const systemPrompt = isETP ? ETP_SYSTEM_PROMPT : DFD_PCA_SYSTEM_PROMPT;
+      const userPromptFn = isETP ? ETP_USER_PROMPT : DFD_PCA_USER_PROMPT;
+      const toolName = isETP ? 'gerar_analise_etp' : 'gerar_analise_dfd_pca';
+      console.log(`Using specialized analysis prompt for ${docLabel}`);
+
+      const checklistText = checklistDef.map(item => `- ${item.codigo}: ${item.descricao}`).join('\n');
+
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -156,17 +214,28 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash',
           messages: [
-            { role: 'system', content: ETP_SYSTEM_PROMPT },
-            { role: 'user', content: ETP_USER_PROMPT(analysis.processo || 'Não informado', checklistText) }
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPromptFn(analysis.processo || 'Não informado', checklistText) }
           ],
           tools: [{
             type: 'function',
             function: {
-              name: 'gerar_analise_etp',
-              description: 'Gera análise técnica estruturada do ETP conforme Lei 14.133/2021',
+              name: toolName,
+              description: `Gera análise técnica estruturada do ${docLabel} conforme Lei 14.133/2021 e decretos aplicáveis`,
               parameters: {
                 type: 'object',
                 properties: {
+                  resumo_documento: {
+                    type: 'object',
+                    description: 'Resumo do documento extraído',
+                    properties: {
+                      processo: { type: 'string', description: 'Somente o número do processo' },
+                      secretaria: { type: 'string', description: 'Secretaria/Órgão requisitante' },
+                      objeto: { type: 'string', description: 'Objeto da contratação' },
+                      base_normativa: { type: 'string', description: 'Base normativa citada no documento' },
+                      responsaveis: { type: 'array', items: { type: 'string' }, description: 'Nomes dos responsáveis identificados' }
+                    }
+                  },
                   tabela_analise: {
                     type: 'array',
                     description: 'Tabela com análise de cada item do checklist',
@@ -174,49 +243,49 @@ serve(async (req) => {
                       type: 'object',
                       properties: {
                         numero: { type: 'number', description: 'Número sequencial do item' },
-                        codigo: { type: 'string', description: 'Código do item (ex: ETP-01)' },
+                        codigo: { type: 'string', description: `Código do item (ex: ${checklistDef[0].codigo})` },
                         item_verificado: { type: 'string', description: 'Descrição do item verificado' },
-                        conformidade: { 
-                          type: 'string', 
+                        conformidade: {
+                          type: 'string',
                           enum: ['ATENDE', 'ATENDE_PARCIALMENTE', 'NAO_ATENDE', 'NAO_SE_APLICA'],
                           description: 'Classificação de conformidade do item'
                         },
-                        observacoes: { type: 'string', description: 'Observações detalhadas com fundamentação técnica e referência à seção/página do ETP' }
+                        observacoes: { type: 'string', description: `Observações detalhadas com fundamentação técnica e referência à seção/página do ${docLabel}` }
                       },
                       required: ['numero', 'codigo', 'item_verificado', 'conformidade', 'observacoes']
                     }
                   },
                   conclusao_tecnica: {
                     type: 'object',
-                    description: 'Conclusão técnica do ETP',
+                    description: `Conclusão técnica do ${docLabel}`,
                     properties: {
-                      diagnostico_resumido: { type: 'string', description: 'Diagnóstico resumido sobre a adequação do ETP' },
-                      pontos_fortes: { 
-                        type: 'array', 
+                      diagnostico_resumido: { type: 'string', description: `Diagnóstico resumido sobre a adequação do ${docLabel}` },
+                      pontos_fortes: {
+                        type: 'array',
                         items: { type: 'string' },
                         description: 'Lista de pontos fortes identificados no documento'
                       },
-                      ausencias_criticas: { 
-                        type: 'array', 
+                      ausencias_criticas: {
+                        type: 'array',
                         items: { type: 'string' },
                         description: 'Lista de ausências críticas ou itens que necessitam correção'
                       },
-                      parecer_adequacao: { type: 'string', description: 'Parecer final sobre se o ETP é suficiente para subsidiar a contratação pública pretendida' }
+                      parecer_adequacao: { type: 'string', description: `Parecer final sobre se o ${docLabel} é suficiente para subsidiar a contratação pública pretendida` }
                     },
                     required: ['diagnostico_resumido', 'pontos_fortes', 'ausencias_criticas', 'parecer_adequacao']
                   },
-                  conformidade_percentual: { 
-                    type: 'number', 
-                    minimum: 0, 
+                  conformidade_percentual: {
+                    type: 'number',
+                    minimum: 0,
                     maximum: 100,
-                    description: 'Percentual geral de conformidade do ETP'
+                    description: `Percentual geral de conformidade do ${docLabel}`
                   }
                 },
                 required: ['tabela_analise', 'conclusao_tecnica', 'conformidade_percentual']
               }
             }
           }],
-          tool_choice: { type: 'function', function: { name: 'gerar_analise_etp' } }
+          tool_choice: { type: 'function', function: { name: toolName } }
         }),
       });
 
@@ -234,18 +303,20 @@ serve(async (req) => {
 
       const aiData = await aiResponse.json();
       console.log('AI Response received');
-      
+
       const toolCall = aiData.choices[0].message.tool_calls?.[0];
       if (!toolCall) {
         throw new Error('Resposta da IA não contém análise estruturada');
       }
-      
-      resultado = JSON.parse(toolCall.function.arguments);
-      console.log('ETP Analysis result parsed, conformidade:', resultado.conformidade_percentual);
 
-      // Generate ETP-specific HTML report with table format
-      relatorio_html = generateETPHtmlReport(analysis, resultado, analyst);
-      relatorio_texto = generateETPTextReport(analysis, resultado, analyst);
+      resultado = JSON.parse(toolCall.function.arguments);
+      console.log(`${docLabel} analysis parsed, conformidade:`, resultado.conformidade_percentual);
+
+      // Generate specialized HTML/text report with table format
+      relatorio_html = generateETPHtmlReport(analysis, resultado, analyst, docLabel);
+      relatorio_texto = generateETPTextReport(analysis, resultado, analyst, docLabel);
+
+
       
     } else {
       // Use generic analysis for other document types
@@ -423,7 +494,7 @@ function getConformityStyle(conformidade: string) {
 }
 
 // Generate ETP-specific HTML report
-function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
+function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }, docLabel: string = 'ETP'): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableRows = resultado.tabela_analise?.map((item: any) => {
@@ -446,7 +517,7 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
       <!-- Header -->
       <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 3px solid hsl(250, 60%, 55%);">
         <h1 style="color: hsl(250, 60%, 45%); margin: 0 0 0.5rem 0; font-size: 1.75rem;">
-          Relatório de Análise Técnica - ETP
+          Relatório de Análise Técnica - ${docLabel}
         </h1>
         <p style="color: hsl(250, 30%, 50%); margin: 0; font-size: 0.95rem;">
           Estudo Técnico Preliminar • Lei nº 14.133/2021
@@ -508,7 +579,7 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
       <!-- Technical Conclusion -->
       <div style="margin-top: 2rem; background: hsl(250, 60%, 98%); border-radius: 12px; padding: 1.5rem; border: 1px solid hsl(250, 40%, 90%);">
         <h2 style="color: hsl(250, 60%, 45%); font-size: 1.25rem; margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid hsl(250, 60%, 85%);">
-          Conclusão Técnica do ETP
+          Conclusão Técnica do ${docLabel}
         </h2>
         
         <div style="margin-bottom: 1.5rem;">
@@ -554,7 +625,7 @@ function generateETPHtmlReport(analysis: any, resultado: any, analyst: { name: s
 }
 
 // Generate ETP-specific text report
-function generateETPTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }): string {
+function generateETPTextReport(analysis: any, resultado: any, analyst: { name: string; email: string; shortId: string }, docLabel: string = 'ETP'): string {
   const conformidadeFormatted = resultado.conformidade_percentual?.toFixed(1) || '0.0';
   
   const tableContent = resultado.tabela_analise?.map((item: any) => {
@@ -575,7 +646,7 @@ ${item.numero}. ${item.codigo} - ${item.item_verificado}
 
   return `
 ================================================================================
-                    RELATÓRIO DE ANÁLISE TÉCNICA - ETP
+                    RELATÓRIO DE ANÁLISE TÉCNICA - ${docLabel}
               Estudo Técnico Preliminar • Lei nº 14.133/2021
 ================================================================================
 
@@ -600,7 +671,7 @@ Conformidade Geral: ${conformidadeFormatted}%
 ${tableContent}
 
 ================================================================================
-                           CONCLUSÃO TÉCNICA DO ETP
+                           CONCLUSÃO TÉCNICA DO ${docLabel}
 ================================================================================
 
 DIAGNÓSTICO RESUMIDO

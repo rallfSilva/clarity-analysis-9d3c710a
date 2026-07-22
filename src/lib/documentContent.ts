@@ -1,5 +1,6 @@
 export const DOCUMENT_TYPES = {
   DFD: 'DFD',
+  'DFD do PCA': 'DFD do PCA',
   ETP: 'ETP',
   'Nota Técnica': 'Nota Técnica',
   'Análise de Risco': 'Análise de Risco',
@@ -18,6 +19,21 @@ export const DOCUMENT_DESCRIPTIONS = {
       "Estimativa de custos",
       "Previsão de impacto econômico",
       "Disponibilidade orçamentária"
+    ]
+  },
+  "DFD do PCA": {
+    titulo: "Documento de Formalização de Demanda do PCA (DFD do PCA)",
+    descricao: `O DFD do PCA formaliza a demanda no âmbito do Plano de Contratações Anual (PCA), conforme o Decreto nº 39.050-E/2025 e o Decreto nº 36.203-E/2024. Este checklist verifica os requisitos obrigatórios previstos no art. 5º, §1º do Decreto nº 39.050-E/2025 e no art. 6º do Decreto nº 36.203-E/2024, incluindo justificativa, descrição sucinta, quantidade estimada, valor estimado, data pretendida, grau de prioridade, correlação com outros DFDs e identificação da área requisitante, além da validação das assinaturas eletrônicas.`,
+    checklistItems: [
+      "Justificativa da necessidade da contratação",
+      "Descrição sucinta da demanda",
+      "Quantidade estimada (expectativa de consumo anual)",
+      "Estimativa preliminar do valor da contratação",
+      "Data pretendida para a conclusão da contratação",
+      "Grau de prioridade (baixo, médio ou alto)",
+      "Correlação ou interdependência com outros DFDs",
+      "Identificação da área requisitante e do responsável",
+      "Assinaturas eletrônicas válidas (nome + data)"
     ]
   },
   ETP: {

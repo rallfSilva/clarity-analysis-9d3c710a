@@ -26,6 +26,7 @@ const userItems = [
 
 const documentTypes = [
   { title: 'DFD', url: '/upload/dfd', icon: FileText },
+  { title: 'DFD do PCA', url: '/upload/dfd-pca', icon: FileText },
   { title: 'ETP', url: '/upload/etp', icon: FileText },
   { title: 'Nota Técnica', url: '/upload/nota-tecnica', icon: FileText },
   { title: 'Análise de Risco', url: '/upload/analise-risco', icon: FileText },
