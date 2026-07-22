@@ -185,31 +185,26 @@ serve(async (req) => {
     
     console.log('File converted to base64, length:', base64.length);
 
-    // Determine if this is an ETP analysis
+    // Determine if this is a specialized analysis (ETP or DFD do PCA)
     const isETP = analysis.tipo_documento === 'ETP';
-    
+    const isDFDPCA = analysis.tipo_documento === 'DFD do PCA';
+    const isSpecialized = isETP || isDFDPCA;
+
     let resultado: any;
     let relatorio_html: string;
     let relatorio_texto: string;
 
-    if (isETP) {
-      // Use specialized ETP analysis
-      console.log('Using specialized ETP analysis prompt');
-      
-      const checklistText = ETP_CHECKLIST.map(item => `- ${item.codigo}: ${item.descricao}`).join('\n');
-      
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: ETP_SYSTEM_PROMPT },
-            { role: 'user', content: ETP_USER_PROMPT(analysis.processo || 'Não informado', checklistText) }
-          ],
+    if (isSpecialized) {
+      // Use specialized analysis (ETP or DFD do PCA)
+      const docLabel = isETP ? 'ETP' : 'DFD do PCA';
+      const checklistDef = isETP ? ETP_CHECKLIST : DFD_PCA_CHECKLIST;
+      const systemPrompt = isETP ? ETP_SYSTEM_PROMPT : DFD_PCA_SYSTEM_PROMPT;
+      const userPromptFn = isETP ? ETP_USER_PROMPT : DFD_PCA_USER_PROMPT;
+      const toolName = isETP ? 'gerar_analise_etp' : 'gerar_analise_dfd_pca';
+      console.log(`Using specialized analysis prompt for ${docLabel}`);
+
+      const checklistText = checklistDef.map(item => `- ${item.codigo}: ${item.descricao}`).join('\n');
+
           tools: [{
             type: 'function',
             function: {
