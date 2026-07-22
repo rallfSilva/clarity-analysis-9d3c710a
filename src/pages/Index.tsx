@@ -12,7 +12,7 @@ import {
   Sparkles,
   CheckCircle2,
 } from 'lucide-react';
-import siacLogo from '@/assets/siac-selc-logo.png';
+import siacLogo from '@/assets/siac-logo.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -79,11 +79,10 @@ const Index = () => {
       {/* Nav */}
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-20">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center">
             <img src={siacLogo} alt="SIAC" className="h-11 w-auto object-contain" />
-            <div className="h-8 w-px bg-border hidden md:block" />
-            <span className="hidden md:block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground leading-tight">
-              Sistema Integrado de<br />Análise de Conformidades
+            <span className="text-[11px] font-semibold text-muted-foreground leading-tight">
+              Sistema integrado de análise de Conformidades
             </span>
           </div>
           <div className="flex items-center gap-6">
@@ -296,12 +295,12 @@ const Index = () => {
         <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-3">
             <img src={siacLogo} alt="SIAC" className="h-8 w-auto object-contain" />
-            <span className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
-              Análise de Conformidade
+            <span className="text-xs font-bold tracking-widest text-muted-foreground">
+              Sistema integrado de análise de Conformidades
             </span>
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            Sistema Integrado de Análise de Conformidades<br />
+            Sistema integrado de análise de Conformidades<br />
             SIAC © 2026 — Em conformidade com a LGPD e Lei 14.133/2021
           </p>
           <div className="flex gap-6 text-sm font-medium text-muted-foreground">
