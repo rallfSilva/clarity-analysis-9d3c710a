@@ -205,14 +205,37 @@ serve(async (req) => {
 
       const checklistText = checklistDef.map(item => `- ${item.codigo}: ${item.descricao}`).join('\n');
 
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPromptFn(analysis.processo || 'Não informado', checklistText) }
+          ],
           tools: [{
             type: 'function',
             function: {
-              name: 'gerar_analise_etp',
-              description: 'Gera análise técnica estruturada do ETP conforme Lei 14.133/2021',
+              name: toolName,
+              description: `Gera análise técnica estruturada do ${docLabel} conforme Lei 14.133/2021 e decretos aplicáveis`,
               parameters: {
                 type: 'object',
                 properties: {
+                  resumo_documento: {
+                    type: 'object',
+                    description: 'Resumo do documento extraído',
+                    properties: {
+                      processo: { type: 'string', description: 'Somente o número do processo' },
+                      secretaria: { type: 'string', description: 'Secretaria/Órgão requisitante' },
+                      objeto: { type: 'string', description: 'Objeto da contratação' },
+                      base_normativa: { type: 'string', description: 'Base normativa citada no documento' },
+                      responsaveis: { type: 'array', items: { type: 'string' }, description: 'Nomes dos responsáveis identificados' }
+                    }
+                  },
                   tabela_analise: {
                     type: 'array',
                     description: 'Tabela com análise de cada item do checklist',
@@ -220,49 +243,49 @@ serve(async (req) => {
                       type: 'object',
                       properties: {
                         numero: { type: 'number', description: 'Número sequencial do item' },
-                        codigo: { type: 'string', description: 'Código do item (ex: ETP-01)' },
+                        codigo: { type: 'string', description: `Código do item (ex: ${checklistDef[0].codigo})` },
                         item_verificado: { type: 'string', description: 'Descrição do item verificado' },
-                        conformidade: { 
-                          type: 'string', 
+                        conformidade: {
+                          type: 'string',
                           enum: ['ATENDE', 'ATENDE_PARCIALMENTE', 'NAO_ATENDE', 'NAO_SE_APLICA'],
                           description: 'Classificação de conformidade do item'
                         },
-                        observacoes: { type: 'string', description: 'Observações detalhadas com fundamentação técnica e referência à seção/página do ETP' }
+                        observacoes: { type: 'string', description: `Observações detalhadas com fundamentação técnica e referência à seção/página do ${docLabel}` }
                       },
                       required: ['numero', 'codigo', 'item_verificado', 'conformidade', 'observacoes']
                     }
                   },
                   conclusao_tecnica: {
                     type: 'object',
-                    description: 'Conclusão técnica do ETP',
+                    description: `Conclusão técnica do ${docLabel}`,
                     properties: {
-                      diagnostico_resumido: { type: 'string', description: 'Diagnóstico resumido sobre a adequação do ETP' },
-                      pontos_fortes: { 
-                        type: 'array', 
+                      diagnostico_resumido: { type: 'string', description: `Diagnóstico resumido sobre a adequação do ${docLabel}` },
+                      pontos_fortes: {
+                        type: 'array',
                         items: { type: 'string' },
                         description: 'Lista de pontos fortes identificados no documento'
                       },
-                      ausencias_criticas: { 
-                        type: 'array', 
+                      ausencias_criticas: {
+                        type: 'array',
                         items: { type: 'string' },
                         description: 'Lista de ausências críticas ou itens que necessitam correção'
                       },
-                      parecer_adequacao: { type: 'string', description: 'Parecer final sobre se o ETP é suficiente para subsidiar a contratação pública pretendida' }
+                      parecer_adequacao: { type: 'string', description: `Parecer final sobre se o ${docLabel} é suficiente para subsidiar a contratação pública pretendida` }
                     },
                     required: ['diagnostico_resumido', 'pontos_fortes', 'ausencias_criticas', 'parecer_adequacao']
                   },
-                  conformidade_percentual: { 
-                    type: 'number', 
-                    minimum: 0, 
+                  conformidade_percentual: {
+                    type: 'number',
+                    minimum: 0,
                     maximum: 100,
-                    description: 'Percentual geral de conformidade do ETP'
+                    description: `Percentual geral de conformidade do ${docLabel}`
                   }
                 },
                 required: ['tabela_analise', 'conclusao_tecnica', 'conformidade_percentual']
               }
             }
           }],
-          tool_choice: { type: 'function', function: { name: 'gerar_analise_etp' } }
+          tool_choice: { type: 'function', function: { name: toolName } }
         }),
       });
 
@@ -280,18 +303,20 @@ serve(async (req) => {
 
       const aiData = await aiResponse.json();
       console.log('AI Response received');
-      
+
       const toolCall = aiData.choices[0].message.tool_calls?.[0];
       if (!toolCall) {
         throw new Error('Resposta da IA não contém análise estruturada');
       }
-      
-      resultado = JSON.parse(toolCall.function.arguments);
-      console.log('ETP Analysis result parsed, conformidade:', resultado.conformidade_percentual);
 
-      // Generate ETP-specific HTML report with table format
-      relatorio_html = generateETPHtmlReport(analysis, resultado, analyst);
-      relatorio_texto = generateETPTextReport(analysis, resultado, analyst);
+      resultado = JSON.parse(toolCall.function.arguments);
+      console.log(`${docLabel} analysis parsed, conformidade:`, resultado.conformidade_percentual);
+
+      // Generate specialized HTML/text report with table format
+      relatorio_html = generateETPHtmlReport(analysis, resultado, analyst, docLabel);
+      relatorio_texto = generateETPTextReport(analysis, resultado, analyst, docLabel);
+
+
       
     } else {
       // Use generic analysis for other document types
