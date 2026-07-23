@@ -55,6 +55,7 @@ const App = () => (
             <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin><DashboardLayout><AdminDashboard /></DashboardLayout></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute requireAdmin><DashboardLayout><ManageUsers /></DashboardLayout></ProtectedRoute>} />
             <Route path="/admin/audit" element={<ProtectedRoute requireAdmin><DashboardLayout><AuditLogs /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/admin/prompts" element={<ProtectedRoute requireAdmin><DashboardLayout><ManagePrompts /></DashboardLayout></ProtectedRoute>} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
