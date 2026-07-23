@@ -1,131 +1,48 @@
-# Redesign do Relatório de Auditoria — Estilo Executivo BI
+## Objetivo
 
-Reformulação puramente visual e estrutural do relatório de análise. **Todo o conteúdo técnico atual (itens do checklist, observações, conclusões, percentuais, fundamentação legal, dados do analista) será preservado 100%** — apenas a apresentação muda.
+Atualizar o `AdminDashboard` (perfil administrador) para replicar fielmente o layout da imagem anexa, adicionando as seções que hoje estão faltando.
 
-## Escopo
+## Estado atual vs imagem
 
-Redesign aplicado em duas superfícies:
-1. **Visualização in-app** (modal "Ver Relatório" em `Minhas Análises`) — nova experiência interativa com accordions, cards, gráficos e botões de ação.
-2. **Exportação PDF** (botão Download em `Minhas Análises`) — versão paginada, executiva, com cabeçalho institucional, cards de indicadores, tabela colorida, gráficos e seções bem hierarquizadas.
+Existe hoje em `src/pages/admin/AdminDashboard.tsx`:
+- 4 KPIs (Total Usuários, Análises Hoje, Taxa de Sucesso, Tempo Médio)
+- Gráfico de barras "Análises por Dia"
+- Card "Alertas do Sistema"
 
-Prioridade inicial: **relatórios ETP** (que já têm dados estruturados em `resultado_json`). Relatórios genéricos (demais tipos) receberão o mesmo layout aproveitando o `resultado_json` já existente.
+Faltando (visível na imagem):
+1. Primeira linha de KPIs com **4 cards**: Total de Usuários, Usuários Ativos, Administradores, Secretarias
+2. Segunda linha de KPIs mantém os 4 atuais (Total de Usuários / Análises Hoje / Taxa de Sucesso / Tempo Médio)
+3. Grid de **atalhos rápidos** (5 cards com ícone + descrição + botão "Acessar"):
+   - Gerenciar Usuários → `/admin/users`
+   - Gerenciar Prompts → `/admin/prompts` (rota não existe ainda; botão levará a `/settings` como fallback)
+   - Logs de Auditoria → `/admin/audit`
+   - Todas as Análises → `/analyses`
+   - Configurações → `/settings`
+4. Seção **Atividade Recente** — últimos usuários cadastrados (nome, e-mail, data de cadastro à direita)
+5. Remover o card "Alertas do Sistema" (não aparece na imagem)
 
-## Nova Estrutura do Relatório
+## Implementação
 
-```text
-┌──────────────────────────────────────────────────────────┐
-│  CABEÇALHO EXECUTIVO                                     │
-│  Logo SIAC-SELC   |   Título/Processo/Tipo/Data/Status   │
-│                                                          │
-│         ┌────────────────────┐                           │
-│         │  Circular Progress │  Badge de Conformidade    │
-│         │      66,67%        │  Progress Bar colorida    │
-│         └────────────────────┘                           │
-├──────────────────────────────────────────────────────────┤
-│  CARDS DE INDICADORES (grid 4 col)                       │
-│  [Processo] [Tipo] [Tempo] [Data]                        │
-│  [Itens]    [Conforme] [Parcial] [Não Conforme]          │
-├──────────────────────────────────────────────────────────┤
-│  RESUMO EXECUTIVO (card)                                 │
-│  • Objetivo • Conformidades • Não-conformidades          │
-│  • Nível de risco (badge) • Conclusão resumida           │
-├──────────────────────────────────────────────────────────┤
-│  TABELA DE ANÁLISE (moderna, colunas separadas)          │
-│  Item | Elemento | Situação (badge) | Obs | Recomend.    │
-│  Cada linha expansível (Accordion):                      │
-│    → Fundamentação legal (card 📚)                       │
-│    → Evidências                                          │
-│    → Observações                                         │
-│    → Recomendações                                       │
-│    → Badge de Criticidade (🔴🟠🟢)                       │
-├──────────────────────────────────────────────────────────┤
-│  RECOMENDAÇÕES DA AUDITORIA (lista consolidada)          │
-├──────────────────────────────────────────────────────────┤
-│  ESTATÍSTICAS (Recharts)                                 │
-│  Pizza | Barras | Radar                                  │
-├──────────────────────────────────────────────────────────┤
-│  CONCLUSÃO EXECUTIVA (card destacado)                    │
-│  Percentual | Situação | Parecer IA | Próximas ações     │
-└──────────────────────────────────────────────────────────┘
-Barra de ações fixa: [Expandir tudo] [Recolher tudo]
-                     [Imprimir] [Exportar PDF] [Exportar Word] [Copiar Resumo]
-```
+Arquivo único: `src/pages/admin/AdminDashboard.tsx`
 
-## Plano de Implementação
+- Buscar em paralelo: `profiles` (todos), `user_roles` (para contar admins), `analyses`.
+- Calcular:
+  - Total usuários = `profiles.length`
+  - Usuários ativos = `profiles.filter(is_active).length` + "100% do total" quando aplicável
+  - Administradores = `user_roles.filter(role==='admin').length` com sublinha "Com acesso total"
+  - Secretarias = `0` com sublinha "Órgãos representados" (não há campo no schema; manter placeholder como na imagem)
+- Renderizar duas linhas de 4 cards seguindo o mesmo componente `Card` já usado, cada card com ícone à direita e uma linha de descrição secundária.
+- Manter gráfico de barras existente.
+- Adicionar grid `md:grid-cols-4 lg:grid-cols-5` com os 5 cards de atalho usando `Link` do react-router para navegação.
+- Adicionar "Atividade Recente": listar os 5 mais recentes de `profiles` ordenados por `created_at desc`, com nome, e-mail e data formatada `dd/MM/yyyy` alinhada à direita.
 
-### 1. Novo componente `ReportView` (in-app)
-Arquivo: `src/components/reports/ReportView.tsx`
-- Recebe `analysis` + `analyst` como props.
-- Renderiza toda a estrutura acima usando shadcn/ui (`Card`, `Badge`, `Progress`, `Accordion`, `Tabs`, `Table`, `Separator`), Lucide icons e Recharts.
-- Sub-componentes: `ReportHeader`, `IndicatorCards`, `ExecutiveSummary`, `AnalysisTable`, `LegalBasisCard`, `RecommendationsList`, `StatsCharts`, `ConclusionCard`, `ReportActions`.
-- Consome `resultado_json` (já contém `tabela_analise`, `conclusao_tecnica`, `conformidade_percentual`); faz fallback gracioso para relatórios antigos (usa `relatorio_html` como conteúdo bruto dentro do bloco "Análise Detalhada").
-- Derivação de criticidade a partir da conformidade quando o JSON não trouxer explicitamente (`NAO_ATENDE`→Alta, `ATENDE_PARCIALMENTE`→Média, `ATENDE`→Baixa).
-- Detecção automática de fundamentação legal via regex nas observações (`Lei 14.133`, `IN 58`, `IN 65`, `Decreto`) — extrai e exibe em card 📚 dentro do accordion.
+## Notas técnicas
 
-### 2. Integração no modal atual
-Arquivo: `src/pages/Analyses.tsx`
-- Substituir o `dangerouslySetInnerHTML` do `Dialog` "Ver Relatório" por `<ReportView analysis={selectedAnalysis} analyst={selectedAnalyst} />`.
-- Aumentar largura do dialog para `max-w-6xl`.
-- Manter carregamento do perfil do analista já existente.
+- Não altera schema nem policies. Apenas leitura de tabelas já acessíveis pelo admin via RLS existente.
+- Rota "Gerenciar Prompts" não existe hoje; o card apontará para `/settings` e uma nota `title` explicando (posso criar rota real em iteração futura se desejado).
+- Sem novas dependências.
 
-### 3. Novo gerador de PDF executivo
-Arquivo: `src/lib/reportPdf.ts` (novo)
-- Função `exportReportPDF(analysis, analyst)` usando `jsPDF` + `jspdf-autotable` (adicionar dependência).
-- Layout paginado:
-  - **Capa/Cabeçalho institucional** (faixa azul-marinho, logo, título, metadados)
-  - **Cards de indicadores** (retângulos com ícone, título, valor)
-  - **Barra de conformidade colorida** + percentual grande
-  - **Resumo Executivo** (bloco com bordas suaves)
-  - **Tabela de análise** via `autoTable` com badges coloridos (verde/amarelo/vermelho/cinza) por status
-  - **Recomendações da Auditoria** (lista numerada)
-  - **Conclusão Técnica** (card destaque)
-  - **Rodapé** com identificação do analista + paginação em todas as páginas
-- Substitui a função `handleDownloadReport` atual em `Analyses.tsx`.
+## Fora de escopo
 
-### 4. Ações extras do relatório
-No `ReportView`:
-- **Imprimir**: `window.print()` com `@media print` dedicado.
-- **Exportar PDF**: chama `exportReportPDF`.
-- **Exportar Word**: gera `.doc` HTML-based (blob `application/msword`) reutilizando o markup do ReportView.
-- **Copiar Resumo**: `navigator.clipboard.writeText` com o resumo executivo + percentual.
-- **Expandir/Recolher todos**: controla estado do Accordion.
-
-### 5. Design tokens
-- Reutiliza tokens existentes de `index.css` (institucional azul-marinho já configurado).
-- Adiciona utilitários semânticos (se ainda não existirem): `conformity-success`, `conformity-warning`, `conformity-danger`, `conformity-neutral` — todas via HSL em `index.css` e mapeadas no `tailwind.config.ts`.
-- Nenhuma cor hardcoded nos componentes.
-
-### 6. Sem alterações de conteúdo
-- Nenhuma mudança em `supabase/functions/analyze-document/index.ts` nesta iteração — os dados já produzidos são suficientes.
-- Nenhuma mudança de schema, RLS, prompt de IA ou lógica de negócio.
-
-## Detalhes Técnicos
-
-**Dependências novas:**
-- `jspdf-autotable` (para tabela colorida no PDF).
-
-**Arquivos criados:**
-- `src/components/reports/ReportView.tsx`
-- `src/components/reports/ReportHeader.tsx`
-- `src/components/reports/IndicatorCards.tsx`
-- `src/components/reports/ExecutiveSummary.tsx`
-- `src/components/reports/AnalysisTable.tsx`
-- `src/components/reports/StatsCharts.tsx`
-- `src/components/reports/ConclusionCard.tsx`
-- `src/components/reports/ReportActions.tsx`
-- `src/lib/reportPdf.ts`
-- `src/lib/reportUtils.ts` (helpers: criticidade, extração de base legal, agregações)
-
-**Arquivos modificados:**
-- `src/pages/Analyses.tsx` (dialog usa ReportView; download chama novo `exportReportPDF`)
-- `src/index.css` e `tailwind.config.ts` (tokens de conformidade — se necessário)
-
-**Compatibilidade:**
-- Relatórios ETP → usam `resultado_json.tabela_analise` e `resultado_json.conclusao_tecnica`.
-- Relatórios genéricos → usam `resultado_json.itens_checklist`, `resumo_executivo`, `recomendacoes_prioritarias`.
-- Relatórios legados sem `resultado_json` → renderiza cabeçalho + indicadores + fallback para `relatorio_html` no bloco "Análise Detalhada".
-
-## Fora do Escopo
-- Alterar prompts da IA ou schema de dados.
-- Traduzir para outros idiomas.
-- Editar o conteúdo textual gerado pela IA.
+- Criação da página "Gerenciar Prompts".
+- Adição de campo "secretaria" no perfil (necessário para tornar o KPI Secretarias dinâmico).
