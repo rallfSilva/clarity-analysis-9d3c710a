@@ -118,6 +118,14 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
     }
   };
 
+  const rd = report.resumoDocumento;
+  const startTs = new Date(analysis.created_at);
+  const endTs = analysis.completed_at ? new Date(analysis.completed_at) : null;
+  const fmtDT = (d: Date) => format(d, "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR });
+  const totalSinceEntrada = endTs
+    ? processingDurationLabel(analysis.created_at, analysis.completed_at)
+    : '—';
+
   return (
     <div className="space-y-6">
       {/* Actions bar */}
@@ -137,34 +145,99 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
       </div>
 
       <div ref={printRef} className="space-y-6">
-        {/* Header context */}
-        <Card className="p-5 rounded-xl border-border/60">
-          <div className="flex items-center gap-2 mb-3">
-            <Badge variant="outline" className="uppercase text-[10px] tracking-wide">Relatório</Badge>
-            <Badge className="bg-primary text-primary-foreground">{analysis.tipo_documento}</Badge>
+        {/* Detalhes da Análise */}
+        <div>
+          <h2 className="text-lg font-bold text-foreground mb-4">Detalhes da Análise</h2>
+
+          {/* Informações Gerais */}
+          <div className="mb-4">
+            <h3 className="text-sm font-bold text-foreground mb-3">Informações Gerais</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Usuário</p>
+                <p className="font-semibold text-foreground">{analyst?.name ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Processo</p>
+                <p className="font-semibold text-foreground">{analysis.processo}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tipo de Documento</p>
+                <p className="font-semibold text-foreground">{analysis.tipo_documento}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Status</p>
+                <Badge className="bg-blue-600 hover:bg-blue-600 text-white rounded-full">
+                  {analysis.status === 'concluida' || analysis.status === 'completed' ? 'Concluído' : analysis.status}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Conformidade</p>
+                <p className="font-semibold text-foreground">{conformidade.toFixed(2)}%</p>
+              </div>
+            </div>
           </div>
-          <h2 className="text-xl font-bold text-primary mb-1">
-            Análise de Conformidade — Lei 14.133/2021
-          </h2>
-          <p className="text-muted-foreground text-sm mb-3">
-            Processo <span className="font-semibold text-foreground">{analysis.processo}</span>
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              {format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+
+          {/* Métricas de Desempenho */}
+          <Card className="p-4 rounded-xl bg-muted/40 border-border/60">
+            <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-foreground">
+              <Clock className="h-4 w-4" /> Métricas de Desempenho
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4" /> Tempo: <span className="text-foreground">{tempo}</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Entrada do Documento</p>
+                <p className="font-medium text-foreground">{fmtDT(startTs)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Início do Processamento</p>
+                <p className="font-medium text-foreground">{fmtDT(startTs)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Fim do Processamento</p>
+                <p className="font-medium text-foreground">{endTs ? fmtDT(endTs) : '—'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tempo de processamento</p>
+                <p className="font-semibold text-blue-700">{tempo}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tempo total desde a entrada</p>
+                <p className="font-semibold text-blue-700">{totalSinceEntrada}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">ID Analista</p>
+                <p className="font-medium text-foreground flex items-center gap-1">
+                  <IdCard className="h-3 w-3" /> {analystShortId}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <User className="h-4 w-4" /> {analyst?.name ?? '—'}
+          </Card>
+        </div>
+
+        {/* Relatório Detalhado */}
+        <div>
+          <h3 className="text-base font-bold text-foreground mb-3">Relatório Detalhado</h3>
+          <Card className="rounded-xl border-border/60 overflow-hidden">
+            <div className="text-center py-4 px-5 bg-muted/40 border-b border-border/60">
+              <h4 className="text-lg font-bold text-foreground">
+                Relatório de Análise de Conformidade — {analysis.tipo_documento}
+              </h4>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <IdCard className="h-4 w-4" /> ID {analystShortId}
-            </div>
-          </div>
-        </Card>
+            {(rd?.processo || rd?.secretaria || rd?.objeto || rd?.base_normativa || rd?.responsaveis) && (
+              <div className="p-5">
+                <div className="border-l-4 border-blue-500 bg-blue-50/60 rounded-r-lg p-4 space-y-2 text-sm text-foreground/90">
+                  <p className="text-base font-bold text-blue-900 mb-2">Resumo do Documento</p>
+                  {rd?.processo && (<p><span className="font-semibold">Processo:</span> {rd.processo}</p>)}
+                  {rd?.secretaria && (<p><span className="font-semibold">Secretaria:</span> {rd.secretaria}</p>)}
+                  {rd?.objeto && (<p><span className="font-semibold">Objeto:</span> {rd.objeto}</p>)}
+                  {rd?.base_normativa && (<p><span className="font-semibold">Base Normativa:</span> {rd.base_normativa}</p>)}
+                  {rd?.responsaveis && (<p><span className="font-semibold">Responsáveis:</span> {rd.responsaveis}</p>)}
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+
 
         {/* Tabela de Análise */}
         {report.items.length > 0 && (

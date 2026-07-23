@@ -24,6 +24,14 @@ export interface NormalizedItem {
   criticidade: 'alta' | 'media' | 'baixa';
 }
 
+export interface ResumoDocumento {
+  processo?: string;
+  secretaria?: string;
+  objeto?: string;
+  base_normativa?: string;
+  responsaveis?: string;
+}
+
 export interface NormalizedReport {
   items: NormalizedItem[];
   totals: { conforme: number; parcial: number; nao_conforme: number; nao_aplica: number };
@@ -34,7 +42,9 @@ export interface NormalizedReport {
   parecerFinal?: string;
   recomendacoes: string[];
   diagnostico?: string;
+  resumoDocumento?: ResumoDocumento;
 }
+
 
 export function normalizeSituacao(value: string): SituacaoNormalizada {
   const v = (value || '').toUpperCase();
@@ -138,7 +148,7 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
       items.push({
         numero: i + 1,
         codigo: row.codigo || `#${i + 1}`,
-        elemento: row.codigo || `Item ${i + 1}`,
+        elemento: row.elemento_avaliado || row.item_verificado || row.codigo || `Item ${i + 1}`,
         situacao,
         situacaoLabel: situacaoLabel(situacao),
         observacao: row.justificativa || '',
@@ -148,6 +158,7 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
       });
     });
   }
+
 
   const totals = items.reduce(
     (acc, it) => {
@@ -171,7 +182,9 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
     parecerFinal: conclusao.parecer_adequacao,
     diagnostico: conclusao.diagnostico_resumido,
     recomendacoes: Array.from(recomendacoes).filter(Boolean),
+    resumoDocumento: resultadoJson.resumo_documento,
   };
+
 }
 
 export function situacaoColorClass(s: SituacaoNormalizada): string {

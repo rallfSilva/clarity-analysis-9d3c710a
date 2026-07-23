@@ -321,14 +321,6 @@ serve(async (req) => {
     } else {
       // Use generic analysis for other document types
       console.log('Using generic analysis for:', analysis.tipo_documento);
-      
-      const checklist = analysis.checklist || [
-        { codigo: 'DOC-01', descricao: 'Documento está legível e completo' },
-        { codigo: 'DOC-02', descricao: 'Informações obrigatórias presentes' },
-        { codigo: 'DOC-03', descricao: 'Formatação adequada' },
-        { codigo: 'DOC-04', descricao: 'Assinaturas e carimbos presentes' },
-        { codigo: 'DOC-05', descricao: 'Datas e prazos válidos' }
-      ];
 
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -341,49 +333,56 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: `Você é um especialista em análise de conformidade de documentos jurídicos e administrativos.
-Analise documentos contra checklists de conformidade e forneça relatórios detalhados.`
+              content: `Você é um especialista em análise de conformidade de documentos jurídicos e administrativos, com foco na Lei nº 14.133/2021 e normas correlatas.
+Analise o documento fornecido e produza um relatório técnico detalhado, extraindo os elementos avaliados diretamente do texto do documento.`
             },
             {
               role: 'user',
               content: `Analise este documento do tipo "${analysis.tipo_documento}" referente ao processo "${analysis.processo}".
 
-Checklist de verificação:
-${checklist.map((item: any) => `- ${item.codigo}: ${item.descricao}`).join('\n')}
-
-Para cada item do checklist, verifique:
-1. Se está CONFORME (atende completamente)
-2. Se está NÃO CONFORME (não atende)
-3. Se está PARCIALMENTE CONFORME (atende parcialmente)
-4. Justificativa detalhada da avaliação
-5. Recomendações de correção (se aplicável)
-
-Forneça também:
-- Resumo executivo da análise
-- Principais indicadores de conformidade encontrados
-- Percentual geral de conformidade
-- Recomendações prioritárias`
+INSTRUÇÕES IMPORTANTES:
+1. Leia o documento anexo e IDENTIFIQUE os itens/cláusulas/seções relevantes presentes no próprio documento (ex.: "5", "5.1", "5.16", "5.1 (j)"). NÃO use códigos genéricos como "DOC-01".
+2. Para cada item identificado, preencha:
+   - "codigo": número/identificação da cláusula ou seção EXATAMENTE como aparece no documento (ex.: "5 e 5.16", "5.1", "5.1 (j)").
+   - "elemento_avaliado": título curto do tema tratado no item (ex.: "Minuta Padronizada (SELC) e Formatação", "Condições Gerais, Objeto, ETP e CATMAT", "Sistema de Registro de Preços (SRP)").
+   - "status": CONFORME | NÃO CONFORME | PARCIALMENTE CONFORME.
+   - "justificativa": observações objetivas com base no texto do documento e na Lei 14.133/2021.
+   - "recomendacao": ação de correção quando aplicável.
+3. Extraia também um "resumo_documento" com: processo, secretaria, objeto, base normativa e responsáveis (quando identificáveis no documento).
+4. Forneça resumo executivo, percentual geral de conformidade e recomendações prioritárias.`
             }
           ],
           tools: [{
             type: 'function',
             function: {
               name: 'gerar_analise_conformidade',
-              description: 'Gera análise estruturada de conformidade',
+              description: 'Gera análise estruturada de conformidade com itens extraídos do próprio documento',
               parameters: {
                 type: 'object',
                 properties: {
                   resumo_executivo: { type: 'string' },
+                  resumo_documento: {
+                    type: 'object',
+                    properties: {
+                      processo: { type: 'string' },
+                      secretaria: { type: 'string' },
+                      objeto: { type: 'string' },
+                      base_normativa: { type: 'string' },
+                      responsaveis: { type: 'string' }
+                    }
+                  },
                   itens_checklist: {
                     type: 'array',
                     items: {
                       type: 'object',
                       properties: {
-                        codigo: { type: 'string' },
+                        codigo: { type: 'string', description: 'Número/identificação da cláusula extraída do documento (ex.: "5.1", "5 e 5.16")' },
+                        elemento_avaliado: { type: 'string', description: 'Título curto do tema tratado no item' },
                         status: { type: 'string', enum: ['CONFORME', 'NÃO CONFORME', 'PARCIALMENTE CONFORME'] },
                         justificativa: { type: 'string' },
                         recomendacao: { type: 'string' }
-                      }
+                      },
+                      required: ['codigo', 'elemento_avaliado', 'status', 'justificativa']
                     }
                   },
                   principais_nao_conformidades: {
@@ -403,6 +402,7 @@ Forneça também:
           tool_choice: { type: 'function', function: { name: 'gerar_analise_conformidade' } }
         }),
       });
+
 
       if (!aiResponse.ok) {
         if (aiResponse.status === 429) {
