@@ -214,7 +214,10 @@ export default function AdminDashboard() {
     },
   ];
 
-  const renderKpi = (item: typeof kpiRow1[number], key: string) => {
+  const renderKpi = (
+    item: { title: string; value: string | number; hint: string; icon: any },
+    key: string,
+  ) => {
     const Icon = item.icon;
     return (
       <Card key={key}>
