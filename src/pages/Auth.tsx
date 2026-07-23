@@ -122,7 +122,7 @@ const Auth = () => {
         <div className="flex flex-col items-center space-y-2">
           <img src={siacLogo} alt="SIAC" className="h-28 w-auto object-contain" />
           <h1 className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-2xl text-center">
-            Sistema de Informação de Análise de Conformidades
+            Sistema Integrado de Análise de Conformidades
           </h1>
         </div>
 
