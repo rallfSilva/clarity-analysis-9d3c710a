@@ -1,4 +1,4 @@
-import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown } from 'lucide-react';
+import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown, MessageSquare } from 'lucide-react';
 import siacLogo from '@/assets/siac-logo.png';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
