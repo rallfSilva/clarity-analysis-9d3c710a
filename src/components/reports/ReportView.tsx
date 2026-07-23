@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  FileText, Calendar, Clock, User, IdCard, Printer, Download, FileDown, Copy,
+  FileText, Calendar, Clock, User, IdCard, Printer, Download, FileDown, Copy, ClipboardList,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,14 +34,28 @@ interface Analyst {
 
 function SituacaoBadge({ s, label }: { s: SituacaoNormalizada; label: string }) {
   const map: Record<SituacaoNormalizada, string> = {
-    conforme: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    parcial: 'bg-orange-100 text-orange-700 border-orange-200',
-    nao_conforme: 'bg-red-100 text-red-700 border-red-200',
-    nao_aplica: 'bg-gray-100 text-gray-600 border-gray-200',
+    conforme: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    parcial: 'bg-amber-50 text-amber-700 border-amber-200',
+    nao_conforme: 'bg-red-50 text-red-700 border-red-200',
+    nao_aplica: 'bg-gray-50 text-gray-600 border-gray-200',
   };
   return (
-    <span className={`inline-block px-3 py-1 rounded-md text-xs font-semibold border ${map[s]}`}>
+    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium border ${map[s]}`}>
       {label}
+    </span>
+  );
+}
+
+function CriticidadeBadge({ c }: { c: 'alta' | 'media' | 'baixa' }) {
+  const map = {
+    alta: { label: 'Alta', dot: 'bg-red-500', cls: 'bg-red-50 text-red-700 border-red-200' },
+    media: { label: 'Média', dot: 'bg-orange-500', cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+    baixa: { label: 'Baixa', dot: 'bg-emerald-500', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  }[c];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${map.cls}`}>
+      <span className={`h-2 w-2 rounded-full ${map.dot}`} />
+      {map.label}
     </span>
   );
 }
@@ -152,36 +166,61 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
           </div>
         </Card>
 
-        {/* Tabela de Análise Detalhada por Item */}
+        {/* Tabela de Análise */}
         {report.items.length > 0 && (
-          <div>
-            <h3 className="text-lg font-bold text-primary mb-3">Tabela de Análise Detalhada por Item</h3>
-            <div className="border border-border rounded-lg overflow-hidden">
+          <Card className="rounded-xl border-border/60 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <ClipboardList className="h-5 w-5 text-blue-600" />
+                </div>
+                <h3 className="text-base font-bold text-foreground">Tabela de Análise</h3>
+              </div>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-border text-muted-foreground bg-background">
+                {report.items.length} itens
+              </span>
+            </div>
+            <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-slate-100 text-left">
-                    <th className="px-4 py-3 font-semibold text-foreground border-b border-border w-16">Item</th>
-                    <th className="px-4 py-3 font-semibold text-foreground border-b border-border">Elemento Avaliado</th>
-                    <th className="px-4 py-3 font-semibold text-foreground border-b border-border w-40">Situação</th>
-                    <th className="px-4 py-3 font-semibold text-foreground border-b border-border">Observações / Recomendações</th>
+                  <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-5 py-3 font-medium w-20">Item</th>
+                    <th className="px-5 py-3 font-medium">Elemento Avaliado</th>
+                    <th className="px-5 py-3 font-medium w-44 text-center">Situação</th>
+                    <th className="px-5 py-3 font-medium w-32 text-center">Criticidade</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.items.map((item, idx) => {
+                  {report.items.map((item) => {
                     const obs = [item.observacao, item.recomendacao].filter(Boolean).join('\n\n');
                     return (
-                      <tr key={item.numero} className={`align-top ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/30'}`}>
-                        <td className="px-4 py-3 border-b border-border font-mono text-sm text-muted-foreground align-top">
+                      <tr key={item.numero} className="border-t border-border/60 align-top">
+                        <td className="px-5 py-4 font-mono text-sm text-muted-foreground">
                           {item.codigo}
                         </td>
-                        <td className="px-4 py-3 border-b border-border text-foreground align-top">
-                          {item.elemento}
+                        <td className="px-5 py-4">
+                          <p className="text-foreground font-medium leading-snug mb-3">
+                            {item.elemento}
+                          </p>
+                          {obs && (
+                            <div className="rounded-lg border border-border/70 bg-muted/40 p-3 mt-2 max-w-2xl">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
+                                  Observações / Evidências
+                                </span>
+                              </div>
+                              <p className="text-xs text-foreground/85 leading-relaxed whitespace-pre-line">
+                                {obs}
+                              </p>
+                            </div>
+                          )}
                         </td>
-                        <td className="px-4 py-3 border-b border-border align-top">
+                        <td className="px-5 py-4 text-center">
                           <SituacaoBadge s={item.situacao} label={item.situacaoLabel} />
                         </td>
-                        <td className="px-4 py-3 border-b border-border text-foreground/90 leading-relaxed whitespace-pre-line align-top">
-                          {obs || '—'}
+                        <td className="px-5 py-4 text-center">
+                          <CriticidadeBadge c={item.criticidade} />
                         </td>
                       </tr>
                     );
@@ -189,7 +228,7 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
                 </tbody>
               </table>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Resumo Quantitativo */}

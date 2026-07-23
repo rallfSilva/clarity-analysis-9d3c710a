@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import type { NormalizedReport, SituacaoNormalizada } from './reportUtils';
+import type { NormalizedReport, NormalizedItem, SituacaoNormalizada } from './reportUtils';
 import { processingDurationLabel } from './reportUtils';
 
 interface Analysis {
@@ -21,24 +21,42 @@ interface Analyst {
   email: string;
 }
 
-const COLORS = {
-  navy: [11, 31, 77] as [number, number, number],
-  primary: [29, 78, 216] as [number, number, number],
-  success: [34, 197, 94] as [number, number, number],
-  warning: [245, 158, 11] as [number, number, number],
-  danger: [239, 68, 68] as [number, number, number],
-  muted: [107, 114, 128] as [number, number, number],
-  border: [229, 231, 235] as [number, number, number],
-  bgLight: [245, 247, 251] as [number, number, number],
-  text: [17, 24, 39] as [number, number, number],
+type RGB = [number, number, number];
+
+const C = {
+  navy: [11, 31, 77] as RGB,
+  primary: [29, 78, 216] as RGB,
+  text: [17, 24, 39] as RGB,
+  muted: [107, 114, 128] as RGB,
+  border: [226, 232, 240] as RGB,
+  bg: [248, 250, 252] as RGB,
+  // soft tinted backgrounds (readable in print)
+  successBg: [220, 252, 231] as RGB,
+  successText: [21, 128, 61] as RGB,
+  warnBg: [254, 243, 199] as RGB,
+  warnText: [161, 98, 7] as RGB,
+  dangerBg: [254, 226, 226] as RGB,
+  dangerText: [185, 28, 28] as RGB,
+  grayBg: [241, 245, 249] as RGB,
+  grayText: [71, 85, 105] as RGB,
+  orangeBg: [255, 237, 213] as RGB,
+  orangeText: [194, 65, 12] as RGB,
 };
 
-function situacaoColors(s: SituacaoNormalizada) {
+function situacaoStyle(s: SituacaoNormalizada) {
   switch (s) {
-    case 'conforme': return { fill: COLORS.success, text: [255, 255, 255] as [number, number, number], label: 'Conforme' };
-    case 'parcial': return { fill: COLORS.warning, text: [255, 255, 255] as [number, number, number], label: 'Parcial' };
-    case 'nao_conforme': return { fill: COLORS.danger, text: [255, 255, 255] as [number, number, number], label: 'Não Conforme' };
-    default: return { fill: COLORS.muted, text: [255, 255, 255] as [number, number, number], label: 'N/A' };
+    case 'conforme': return { bg: C.successBg, fg: C.successText, label: 'Conforme' };
+    case 'parcial': return { bg: C.warnBg, fg: C.warnText, label: 'Parcialmente Conforme' };
+    case 'nao_conforme': return { bg: C.dangerBg, fg: C.dangerText, label: 'Não Conforme' };
+    default: return { bg: C.grayBg, fg: C.grayText, label: 'Não se Aplica' };
+  }
+}
+
+function criticidadeStyle(c: NormalizedItem['criticidade']) {
+  switch (c) {
+    case 'alta': return { bg: C.dangerBg, fg: C.dangerText, label: 'Alta' };
+    case 'media': return { bg: C.orangeBg, fg: C.orangeText, label: 'Média' };
+    default: return { bg: C.successBg, fg: C.successText, label: 'Baixa' };
   }
 }
 
@@ -50,6 +68,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 15;
+  const contentW = pageW - margin * 2;
 
   const conformidade = analysis.conformidade_percentual ?? report.conformidadePercentual ?? 0;
   const tempo = processingDurationLabel(analysis.created_at, analysis.completed_at);
@@ -57,225 +76,253 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   const analystEmail = analyst?.email || '—';
   const analystShortId = analysis.user_id.slice(0, 8);
 
-  let y = 0;
-
-  // ============ Institutional header ============
-  doc.setFillColor(...COLORS.navy);
-  doc.rect(0, 0, pageW, 32, 'F');
+  // ============ Header (navy band) ============
+  doc.setFillColor(...C.navy);
+  doc.rect(0, 0, pageW, 28, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text('SIAC', margin, 13);
+  doc.setFontSize(15);
+  doc.text('SIAC', margin, 12);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Sistema integrado de análise de Conformidades', margin, 19);
+  doc.text('Sistema integrado de análise de Conformidades', margin, 17);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('Relatório Executivo de Auditoria', margin, 27);
+  doc.text('Relatório de Análise de Conformidade', pageW - margin, 12, { align: 'right' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Lei nº 14.133/2021', pageW - margin, 27, { align: 'right' });
+  doc.text('Lei nº 14.133/2021', pageW - margin, 17, { align: 'right' });
 
-  y = 42;
+  let y = 36;
 
-  // ============ Title + circular gauge area ============
-  doc.setTextColor(...COLORS.text);
+  // ============ Title ============
+  doc.setTextColor(...C.text);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
   doc.text('Análise de Conformidade', margin, y);
-  y += 6;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(...COLORS.muted);
-  doc.text(`Processo ${analysis.processo || 'N/A'}  •  Tipo ${analysis.tipo_documento}`, margin, y);
   y += 8;
 
-  // Conformity gauge box (right)
-  const gaugeX = pageW - margin - 60;
-  const gaugeY = y;
-  doc.setDrawColor(...COLORS.border);
-  doc.setFillColor(...COLORS.bgLight);
-  doc.roundedRect(gaugeX, gaugeY, 60, 26, 3, 3, 'FD');
-  const gaugeColor: [number, number, number] =
-    conformidade >= 80 ? COLORS.success : conformidade >= 50 ? COLORS.warning : COLORS.danger;
-  doc.setTextColor(...gaugeColor);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.text(`${conformidade.toFixed(1)}%`, gaugeX + 30, gaugeY + 12, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...COLORS.muted);
-  doc.text('Conformidade Geral', gaugeX + 30, gaugeY + 17, { align: 'center' });
-  // progress bar
-  const barW = 50, barH = 3;
-  const barX = gaugeX + 5, barY = gaugeY + 20;
-  doc.setFillColor(...COLORS.border);
-  doc.roundedRect(barX, barY, barW, barH, 1.5, 1.5, 'F');
-  doc.setFillColor(...gaugeColor);
-  doc.roundedRect(barX, barY, (barW * conformidade) / 100, barH, 1.5, 1.5, 'F');
+  // ============ Metadata card (two columns) ============
+  const metaH = 32;
+  doc.setDrawColor(...C.border);
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(margin, y, contentW, metaH, 2, 2, 'FD');
 
-  // Metadata block (left of gauge)
-  doc.setTextColor(...COLORS.text);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  const metaLines = [
-    `Data: ${format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
-    `Tempo de processamento: ${tempo}`,
-    `Analista: ${analystName}`,
-    `E-mail: ${analystEmail}  •  ID ${analystShortId}`,
+  const col1X = margin + 5;
+  const col2X = margin + contentW / 2 + 2;
+  const rows: Array<[string, string, string, string]> = [
+    ['Processo', analysis.processo || '—', 'Tipo', analysis.tipo_documento],
+    ['Data', format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }), 'Tempo', tempo],
+    ['Analista', analystName, 'E-mail', analystEmail],
   ];
-  metaLines.forEach((line, i) => doc.text(line, margin, y + 4 + i * 5));
-  y += 30;
+  doc.setFontSize(8);
+  rows.forEach((r, i) => {
+    const rowY = y + 7 + i * 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...C.muted);
+    doc.text(r[0].toUpperCase(), col1X, rowY);
+    doc.text(r[2].toUpperCase(), col2X, rowY);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...C.text);
+    doc.setFontSize(10);
+    doc.text(truncate(doc, r[1], contentW / 2 - 10), col1X, rowY + 4);
+    doc.text(truncate(doc, r[3], contentW / 2 - 10), col2X, rowY + 4);
+    doc.setFontSize(8);
+  });
+  y += metaH + 6;
+
+  // ============ Gauge card ============
+  const gaugeH = 22;
+  const gaugeColor: RGB =
+    conformidade >= 80 ? C.successText : conformidade >= 50 ? C.warnText : C.dangerText;
+  doc.setDrawColor(...C.border);
+  doc.setFillColor(...C.bg);
+  doc.roundedRect(margin, y, contentW, gaugeH, 2, 2, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...C.text);
+  doc.text('Conformidade Geral', margin + 5, y + 8);
+  doc.setFontSize(16);
+  doc.setTextColor(...gaugeColor);
+  doc.text(`${conformidade.toFixed(1)}%`, pageW - margin - 5, y + 9, { align: 'right' });
+  // bar
+  const barX = margin + 5;
+  const barY = y + 13;
+  const barW = contentW - 10;
+  const barH = 4;
+  doc.setFillColor(...C.border);
+  doc.roundedRect(barX, barY, barW, barH, 2, 2, 'F');
+  doc.setFillColor(...gaugeColor);
+  doc.roundedRect(barX, barY, (barW * Math.max(0, Math.min(100, conformidade))) / 100, barH, 2, 2, 'F');
+  y += gaugeH + 6;
 
   // ============ Indicator cards ============
   const cardData = [
-    { label: 'Itens Avaliados', value: String(report.items.length), color: COLORS.primary },
-    { label: 'Conforme', value: String(report.totals.conforme), color: COLORS.success },
-    { label: 'Parcial', value: String(report.totals.parcial), color: COLORS.warning },
-    { label: 'Não Conforme', value: String(report.totals.nao_conforme), color: COLORS.danger },
+    { label: 'Itens Avaliados', value: String(report.items.length), color: C.primary },
+    { label: 'Conforme', value: String(report.totals.conforme), color: C.successText },
+    { label: 'Parcial', value: String(report.totals.parcial), color: C.warnText },
+    { label: 'Não Conforme', value: String(report.totals.nao_conforme), color: C.dangerText },
   ];
-  const cardW = (pageW - margin * 2 - 9) / 4;
-  const cardH = 20;
+  const gap = 4;
+  const cardW = (contentW - gap * 3) / 4;
+  const cardH = 22;
+  y = ensureSpace(doc, y, cardH + 6);
   cardData.forEach((c, i) => {
-    const x = margin + i * (cardW + 3);
-    doc.setDrawColor(...COLORS.border);
+    const x = margin + i * (cardW + gap);
+    doc.setDrawColor(...C.border);
     doc.setFillColor(255, 255, 255);
     doc.roundedRect(x, y, cardW, cardH, 2, 2, 'FD');
     doc.setFillColor(...c.color);
-    doc.rect(x, y, 2, cardH, 'F');
-    doc.setTextColor(...COLORS.muted);
+    doc.rect(x, y, 2.5, cardH, 'F');
+    doc.setTextColor(...C.muted);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text(c.label.toUpperCase(), x + 5, y + 7);
-    doc.setTextColor(...COLORS.text);
+    doc.setFontSize(7.5);
+    doc.text(c.label.toUpperCase(), x + 6, y + 8);
+    doc.setTextColor(...C.text);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.text(c.value, x + 5, y + 15);
+    doc.text(c.value, x + 6, y + 17);
   });
   y += cardH + 8;
 
   // ============ Executive summary ============
   const summaryText = report.resumoExecutivo || report.diagnostico;
   if (summaryText) {
-    y = ensureSpace(doc, y, 30);
-    y = drawSectionTitle(doc, 'Resumo Executivo', margin, y, pageW);
-    doc.setFillColor(...COLORS.bgLight);
-    const lines = doc.splitTextToSize(summaryText, pageW - margin * 2 - 6);
-    const blockH = lines.length * 4.5 + 6;
-    doc.roundedRect(margin, y, pageW - margin * 2, blockH, 2, 2, 'F');
-    doc.setTextColor(...COLORS.text);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(lines, margin + 3, y + 5);
-    y += blockH + 4;
+    y = drawSection(doc, 'Resumo Executivo', margin, y, contentW);
+    y = drawTextBlock(doc, summaryText, margin, y, contentW, C.bg);
   }
 
-  // Strengths / weaknesses
+  // Strengths / weaknesses side-by-side
   if (report.pontosFortes.length || report.ausenciasCriticas.length) {
-    y = ensureSpace(doc, y, 20);
-    const colW = (pageW - margin * 2 - 4) / 2;
+    y = ensureSpace(doc, y, 30);
+    const colW = (contentW - 4) / 2;
     const startY = y;
-    let leftBottom = y, rightBottom = y;
+    let leftB = y, rightB = y;
     if (report.pontosFortes.length) {
-      leftBottom = drawBulletCard(doc, 'Pontos Fortes', report.pontosFortes, margin, y, colW, COLORS.success);
+      leftB = drawBulletCard(doc, 'Pontos Fortes', report.pontosFortes, margin, y, colW, C.successText);
     }
     if (report.ausenciasCriticas.length) {
-      rightBottom = drawBulletCard(doc, 'Ausências Críticas', report.ausenciasCriticas, margin + colW + 4, y, colW, COLORS.danger);
+      rightB = drawBulletCard(doc, 'Ausências Críticas', report.ausenciasCriticas, margin + colW + 4, y, colW, C.dangerText);
     }
-    y = Math.max(leftBottom, rightBottom, startY) + 4;
+    y = Math.max(leftB, rightB, startY) + 6;
   }
 
   // ============ Analysis table ============
   if (report.items.length > 0) {
     y = ensureSpace(doc, y, 30);
-    y = drawSectionTitle(doc, 'Tabela de Análise', margin, y, pageW);
+    y = drawSection(doc, 'Tabela de Análise', margin, y, contentW);
 
     autoTable(doc, {
       startY: y,
       margin: { left: margin, right: margin },
-      head: [['Item', 'Elemento Avaliado', 'Situação', 'Observação', 'Recomendação']],
+      tableWidth: contentW,
+      head: [['Item', 'Elemento Avaliado', 'Situação', 'Criticidade', 'Observações / Evidências']],
       body: report.items.map((it) => [
         it.codigo,
         it.elemento,
-        situacaoColors(it.situacao).label,
-        it.observacao,
-        it.recomendacao || '—',
+        situacaoStyle(it.situacao).label,
+        criticidadeStyle(it.criticidade).label,
+        [it.observacao, it.recomendacao].filter(Boolean).join('\n\n') || '—',
       ]),
-      styles: { fontSize: 8, cellPadding: 2, valign: 'top', textColor: COLORS.text as any },
-      headStyles: { fillColor: COLORS.navy as any, textColor: 255, fontStyle: 'bold', fontSize: 9 },
-      alternateRowStyles: { fillColor: [249, 250, 252] as any },
+      styles: {
+        font: 'helvetica',
+        fontSize: 8.5,
+        cellPadding: 3,
+        valign: 'top',
+        overflow: 'linebreak',
+        lineColor: C.border as any,
+        lineWidth: 0.2,
+        textColor: C.text as any,
+      },
+      headStyles: {
+        fillColor: C.navy as any,
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9,
+        halign: 'left',
+        cellPadding: 3.5,
+      },
+      alternateRowStyles: { fillColor: [250, 251, 253] as any },
       columnStyles: {
-        0: { cellWidth: 18, fontStyle: 'bold' },
-        1: { cellWidth: 45 },
-        2: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
-        3: { cellWidth: 50 },
+        0: { cellWidth: 16, fontStyle: 'bold', halign: 'left' },
+        1: { cellWidth: 55 },
+        2: { cellWidth: 28, halign: 'center', fontStyle: 'bold' },
+        3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
         4: { cellWidth: 'auto' },
       },
       didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 2) {
+        if (data.section === 'body') {
           const item = report.items[data.row.index];
-          const c = situacaoColors(item.situacao);
-          data.cell.styles.fillColor = c.fill as any;
-          data.cell.styles.textColor = c.text as any;
+          if (!item) return;
+          if (data.column.index === 2) {
+            const s = situacaoStyle(item.situacao);
+            data.cell.styles.fillColor = s.bg as any;
+            data.cell.styles.textColor = s.fg as any;
+          } else if (data.column.index === 3) {
+            const cr = criticidadeStyle(item.criticidade);
+            data.cell.styles.fillColor = cr.bg as any;
+            data.cell.styles.textColor = cr.fg as any;
+          }
         }
       },
     });
-    y = (doc as any).lastAutoTable.finalY + 6;
+    y = (doc as any).lastAutoTable.finalY + 8;
   }
 
   // ============ Recommendations ============
   if (report.recomendacoes.length > 0) {
-    y = ensureSpace(doc, y, 30);
-    y = drawSectionTitle(doc, 'Recomendações da Auditoria', margin, y, pageW);
-    doc.setTextColor(...COLORS.text);
+    y = ensureSpace(doc, y, 20);
+    y = drawSection(doc, 'Recomendações da Auditoria', margin, y, contentW);
+    doc.setTextColor(...C.text);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     report.recomendacoes.forEach((r, i) => {
-      const lines = doc.splitTextToSize(`${i + 1}. ${r}`, pageW - margin * 2 - 4);
+      const lines: string[] = doc.splitTextToSize(`${i + 1}. ${r}`, contentW - 4);
       y = ensureSpace(doc, y, lines.length * 5 + 2);
       doc.text(lines, margin + 2, y);
-      y += lines.length * 5 + 1;
+      y += lines.length * 5 + 2;
     });
-    y += 3;
+    y += 4;
   }
 
   // ============ Conclusion ============
   if (report.parecerFinal || report.diagnostico) {
     y = ensureSpace(doc, y, 40);
-    y = drawSectionTitle(doc, 'Conclusão Técnica', margin, y, pageW);
-    doc.setFillColor(...COLORS.bgLight);
-    doc.setDrawColor(...COLORS.primary);
-    doc.setLineWidth(0.4);
+    y = drawSection(doc, 'Conclusão Técnica', margin, y, contentW);
     const parecer = report.parecerFinal || report.diagnostico || '';
     const situacaoFinal = conformidade >= 80 ? 'Adequado' : conformidade >= 50 ? 'Adequado com Ressalvas' : 'Inadequado';
-    const lines = doc.splitTextToSize(parecer, pageW - margin * 2 - 6);
-    const blockH = lines.length * 4.5 + 22;
-    doc.roundedRect(margin, y, pageW - margin * 2, blockH, 2, 2, 'FD');
+    const lines: string[] = doc.splitTextToSize(parecer, contentW - 8);
+    const blockH = lines.length * 4.8 + 20;
+    y = ensureSpace(doc, y, blockH);
+    doc.setDrawColor(...C.primary);
+    doc.setFillColor(...C.bg);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(margin, y, contentW, blockH, 2, 2, 'FD');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.setTextColor(...COLORS.primary);
-    doc.text(`${conformidade.toFixed(1)}%  •  ${situacaoFinal}`, margin + 3, y + 7);
+    doc.setTextColor(...C.primary);
+    doc.text(`${conformidade.toFixed(1)}%  •  ${situacaoFinal}`, margin + 4, y + 8);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...COLORS.text);
-    doc.text(lines, margin + 3, y + 15);
+    doc.setFontSize(10);
+    doc.setTextColor(...C.text);
+    doc.text(lines, margin + 4, y + 16);
     y += blockH + 4;
   }
 
-  // ============ Footer on every page ============
+  // ============ Footer ============
   const total = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
-    doc.setDrawColor(...COLORS.border);
+    doc.setDrawColor(...C.border);
     doc.setLineWidth(0.2);
     doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
-    doc.setFontSize(7);
-    doc.setTextColor(...COLORS.muted);
+    doc.setFontSize(7.5);
+    doc.setTextColor(...C.muted);
     doc.text(
       `Analista: ${analystName} (${analystShortId}) • Gerado em ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })}`,
-      margin, pageH - 7,
+      margin, pageH - 6,
     );
-    doc.text(`Página ${i} de ${total}`, pageW - margin, pageH - 7, { align: 'right' });
+    doc.text(`Página ${i} de ${total}`, pageW - margin, pageH - 6, { align: 'right' });
   }
 
   const fileName = `Relatorio_${analysis.tipo_documento.replace(/\s+/g, '_')}_${(analysis.processo || 'sem-processo').replace(/[\/\\]/g, '_')}_${format(new Date(analysis.created_at), 'ddMMyyyy')}.pdf`;
@@ -285,46 +332,72 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
 // ==== helpers ====
 function ensureSpace(doc: any, y: number, needed: number): number {
   const pageH = doc.internal.pageSize.getHeight();
-  if (y + needed > pageH - 20) {
+  if (y + needed > pageH - 18) {
     doc.addPage();
     return 20;
   }
   return y;
 }
 
-function drawSectionTitle(doc: any, title: string, margin: number, y: number, pageW: number): number {
+function drawSection(doc: any, title: string, margin: number, y: number, contentW: number): number {
+  y = ensureSpace(doc, y, 12);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(...COLORS.navy);
+  doc.setTextColor(...C.navy);
   doc.text(title, margin, y);
-  doc.setDrawColor(...COLORS.primary);
-  doc.setLineWidth(0.5);
+  doc.setDrawColor(...C.primary);
+  doc.setLineWidth(0.6);
   doc.line(margin, y + 1.5, margin + 40, y + 1.5);
+  doc.setDrawColor(...C.border);
+  doc.setLineWidth(0.2);
+  doc.line(margin + 42, y + 1.5, margin + contentW, y + 1.5);
   return y + 7;
 }
 
+function drawTextBlock(doc: any, text: string, margin: number, y: number, contentW: number, bg: RGB): number {
+  const lines: string[] = doc.splitTextToSize(text, contentW - 8);
+  const h = lines.length * 4.8 + 8;
+  y = ensureSpace(doc, y, h + 4);
+  doc.setFillColor(...bg);
+  doc.setDrawColor(...C.border);
+  doc.roundedRect(margin, y, contentW, h, 2, 2, 'FD');
+  doc.setTextColor(...C.text);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(lines, margin + 4, y + 6);
+  return y + h + 5;
+}
+
 function drawBulletCard(
-  doc: any, title: string, items: string[], x: number, y: number, w: number, color: [number, number, number],
+  doc: any, title: string, items: string[], x: number, y: number, w: number, color: RGB,
 ): number {
-  doc.setDrawColor(...COLORS.border);
+  const lineHeights = items.map((it) => (doc.splitTextToSize(`• ${it}`, w - 10) as string[]).length * 4.5);
+  const h = 12 + lineHeights.reduce((a, b) => a + b + 1.5, 0);
+  doc.setDrawColor(...C.border);
   doc.setFillColor(255, 255, 255);
-  const lineHeights = items.map((it) => doc.splitTextToSize(`• ${it}`, w - 8).length * 4);
-  const h = 10 + lineHeights.reduce((a, b) => a + b + 1, 0);
   doc.roundedRect(x, y, w, h, 2, 2, 'FD');
   doc.setFillColor(...color);
-  doc.rect(x, y, 2, h, 'F');
+  doc.rect(x, y, 2.5, h, 'F');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
+  doc.setFontSize(9.5);
   doc.setTextColor(...color);
-  doc.text(title.toUpperCase(), x + 5, y + 6);
+  doc.text(title.toUpperCase(), x + 6, y + 7);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setTextColor(...COLORS.text);
-  let cy = y + 11;
+  doc.setTextColor(...C.text);
+  let cy = y + 12;
   items.forEach((it) => {
-    const lines = doc.splitTextToSize(`• ${it}`, w - 8);
-    doc.text(lines, x + 5, cy);
-    cy += lines.length * 4 + 1;
+    const lines: string[] = doc.splitTextToSize(`• ${it}`, w - 10);
+    doc.text(lines, x + 6, cy);
+    cy += lines.length * 4.5 + 1.5;
   });
   return y + h;
+}
+
+function truncate(doc: any, text: string, maxW: number): string {
+  if (!text) return '—';
+  if (doc.getTextWidth(text) <= maxW) return text;
+  let t = text;
+  while (t.length > 3 && doc.getTextWidth(t + '…') > maxW) t = t.slice(0, -1);
+  return t + '…';
 }

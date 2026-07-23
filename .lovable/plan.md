@@ -1,37 +1,37 @@
-## Nova aba "Todas as Análises" (Admin)
+## Refazer "Ver Relatório" (aba Todas as Análises) + reformular PDF
 
-Criar uma página administrativa que replica fielmente o layout do mockup, listando todas as análises do sistema com busca, ações por linha e ações globais no topo.
+### 1. `src/components/reports/ReportView.tsx` — nova Tabela de Análise (modelo image-19)
 
-### 1. Navegação
-- `src/components/AppSidebar.tsx`: adicionar item **"Todas as Análises"** (ícone `ListChecks`) na seção **Administração**, apenas para admins, após "Auditoria & Logs".
-- `src/App.tsx`: registrar rota `/admin/analyses` protegida por admin.
+Substituir a tabela atual por uma tabela conforme o mockup:
 
-### 2. Página `src/pages/admin/AllAnalyses.tsx`
-Cabeçalho:
-- Título "Todas as Análises" + subtítulo "Visualize e gerencie todas as análises de conformidade do sistema".
-- Botões no topo direito: **Processar** (ícone play) e **Atualizar** (ícone refresh).
+- Cabeçalho do bloco: card branco com ícone de documento em círculo azul-claro, título **"Tabela de Análise"** e chip **"N itens"** à direita.
+- Colunas: **Item** (código monoespaçado), **Elemento Avaliado**, **Situação** e **Criticidade**.
+- Badges pill:
+  - Situação: verde (Conforme), amarelo (Parcialmente Conforme), vermelho (Não Conforme), cinza (Não se Aplica).
+  - Criticidade: com bolinha colorida à esquerda + rótulo Baixa/Média/Alta (verde/laranja/vermelho).
+- **Remover a seta/expand**. O bloco **OBSERVAÇÕES / EVIDÊNCIAS** aparece sempre visível abaixo do item, dentro de um mini-card cinza-claro com borda fina e ícone de documento (igual ao mockup), abrangendo apenas a largura das duas primeiras colunas.
+- Alternância de linhas mais suave; sem qualquer botão de expandir.
+- Manter os demais blocos (Resumo Quantitativo, Conclusão e Recomendações, header do relatório e barra de ações) inalterados.
 
-Busca:
-- Input único com placeholder "Buscar por processo, tipo de documento, usuário ou e-mail…" filtrando client-side por processo, tipo, nome e e-mail do usuário.
+### 2. `src/lib/reportPdf.ts` — reformatar impressão
 
-Tabela com colunas: Data/Hora · Usuário (nome + e-mail, ícone user) · Processo · Tipo · Status (badge azul "Concluído", etc.) · Conformidade (%) · Ações.
+Refazer o layout do PDF para ficar limpo, alinhado e sem sobreposição:
 
-Ações por linha:
-- **Ver** (olho): abre o `ReportView` em Dialog (mesmo componente já usado em `Analyses.tsx`).
-- **Reprocessar** (refresh circular): reenvia a análise para a edge function `analyze-document` (reset de status para `pending`, dispara invocação, toast de progresso).
-- **Excluir** (lixeira): confirmação via `AlertDialog` e delete.
+- **Cabeçalho institucional** compacto (faixa navy) com título "Relatório de Análise de Conformidade — Lei 14.133/2021" e subtítulo.
+- **Bloco de metadados** em duas colunas alinhadas (Processo, Tipo, Data, Tempo, Analista, E-mail/ID) — sem sobrepor o gauge.
+- **Gauge de conformidade** em card próprio abaixo do cabeçalho, ocupando largura total, com barra de progresso alinhada.
+- **Cards indicadores** (Itens, Conforme, Parcial, Não Conforme) em uma linha, com larguras iguais calculadas a partir da largura útil.
+- **Resumo Executivo / Pontos Fortes / Ausências Críticas** com quebra de página automática.
+- **Tabela de Análise** via `autoTable`, reproduzindo o mesmo modelo do mockup:
+  - Colunas: Item, Elemento Avaliado, Situação, Criticidade, Observações / Evidências.
+  - Larguras proporcionais à página A4 útil (evita corte).
+  - Situação e Criticidade com cor de fundo suave + texto colorido (não branco em fundo forte, para leitura em impressão).
+  - `cellPadding` maior, `overflow: 'linebreak'`, `valign: 'top'`.
+- **Recomendações** numeradas com espaçamento consistente e quebra de página segura.
+- **Conclusão Técnica** em card com borda azul, valor de conformidade + situação final e parecer justificado.
+- **Rodapé** em todas as páginas: linha fina, "Analista • ID • Gerado em" à esquerda e "Página X de Y" à direita.
+- Margens uniformes (15 mm) e helper `ensureSpace` usado antes de cada bloco para evitar overflow.
 
-Botões globais:
-- **Atualizar**: refetch da lista.
-- **Processar**: percorre análises com status `pending`/`error` e chama a edge function para cada uma em sequência, com toast de progresso e refetch ao final. Desabilitado quando não houver pendentes.
+### Escopo
 
-### 3. Dados
-- Query em `analyses` (sem filtro por `user_id`, pois admin) fazendo join manual com `profiles` (name, email) via segunda consulta agrupada por `user_id`. Ordenação `created_at desc`.
-- Realtime subscription no canal `analyses` (evento `*`) para refresh automático, como já feito em `Analyses.tsx`.
-
-### 4. Detalhes técnicos
-- Reutilizar componentes: `Table`, `Badge`, `Button`, `Input`, `AlertDialog`, `Dialog`, `Progress`, `ReportView`, `normalizeReport`.
-- Ícones: `Eye`, `RefreshCw`, `Trash2`, `Play`, `Filter`, `User`, `ListChecks`.
-- Status badges com as mesmas cores atuais + variante "Concluído" azul (`bg-primary/10 text-primary`) equivalente ao "success" do mockup.
-- Sem alterações em `Minhas Análises` do usuário (mantida como está).
-- Sem mudanças de schema — as políticas RLS existentes já permitem admin ler/atualizar/excluir todas as análises.
+Somente frontend/presentation (`ReportView.tsx` e `reportPdf.ts`). Sem mudanças em schema, edge functions ou lógica de negócio.
