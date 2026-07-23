@@ -78,9 +78,9 @@ const Index = () => {
     <div className="w-full bg-background text-foreground overflow-x-hidden">
       {/* Nav */}
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-20">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-28">
           <div className="flex flex-col items-center">
-            <img src={siacLogo} alt="SIAC" className="h-11 w-auto object-contain" />
+            <img src={siacLogo} alt="SIAC" className="h-20 w-auto object-contain" />
             <span className="text-[11px] font-semibold text-muted-foreground leading-tight">
               Sistema Integrado de Análise de Conformidades
             </span>
@@ -261,34 +261,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-sidebar px-8 py-16 md:py-20 text-center shadow-elegant">
-            <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-primary/40 blur-3xl" />
-
-            <div className="relative z-10">
-              <Sparkles className="h-8 w-8 text-primary-foreground/80 mx-auto mb-6" />
-              <h2 className="text-3xl md:text-4xl font-extrabold text-primary-foreground">
-                Pronto para transformar sua gestão pública?
-              </h2>
-              <p className="mx-auto mt-6 max-w-xl text-primary-foreground/80">
-                Junte-se aos órgãos que elevaram o padrão de suas análises de conformidade com o SIAC.
-              </p>
-              <Button
-                size="lg"
-                onClick={() => navigate('/auth')}
-                variant="secondary"
-                className="mt-10 px-10 py-6 text-base font-bold shadow-elegant hover:scale-105 transition-transform"
-              >
-                Acessar o Sistema
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border bg-card py-10">
