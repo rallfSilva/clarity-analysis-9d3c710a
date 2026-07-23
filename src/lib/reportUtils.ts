@@ -24,6 +24,14 @@ export interface NormalizedItem {
   criticidade: 'alta' | 'media' | 'baixa';
 }
 
+export interface ResumoDocumento {
+  processo?: string;
+  secretaria?: string;
+  objeto?: string;
+  base_normativa?: string;
+  responsaveis?: string;
+}
+
 export interface NormalizedReport {
   items: NormalizedItem[];
   totals: { conforme: number; parcial: number; nao_conforme: number; nao_aplica: number };
@@ -34,7 +42,9 @@ export interface NormalizedReport {
   parecerFinal?: string;
   recomendacoes: string[];
   diagnostico?: string;
+  resumoDocumento?: ResumoDocumento;
 }
+
 
 export function normalizeSituacao(value: string): SituacaoNormalizada {
   const v = (value || '').toUpperCase();
