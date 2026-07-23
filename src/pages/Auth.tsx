@@ -120,14 +120,10 @@ const Auth = () => {
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-accent/20">
       <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-2xl shadow-[var(--shadow-elegant)] border border-border/50">
         <div className="flex flex-col items-center space-y-2">
-          <img src={siacLogo} alt="SIAC" className="h-24 w-auto object-contain" />
+          <img src={siacLogo} alt="SIAC" className="h-28 w-auto object-contain" />
           <h1 className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-2xl text-center">
-            Sistema integrado de análise de Conformidades
+            Sistema de Informação de Análise de Conformidades
           </h1>
-          <p className="text-muted-foreground text-center text-sm">
-            Sistema integrado de análise de Conformidades<br />
-            SIAC © 2026
-          </p>
         </div>
 
         {isLogin ? (
