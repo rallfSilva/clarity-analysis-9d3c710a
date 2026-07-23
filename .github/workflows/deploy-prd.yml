@@ -1,0 +1,39 @@
+# -----------------------------------------------------------------------------
+# Deploy de Produção (manual)
+# -----------------------------------------------------------------------------
+# Diferente do outro deploy, este NÃO dispara sozinho — precisa ser
+# acionado manualmente em Actions → "🚀 Deploy (Produção)" → Run workflow,
+# depois de validar a etapa automática anterior. Não usa GitHub Environments
+# (a conta não tem permissão para criá-los neste repositório) — o secret abaixo é lido
+# direto do nível repositório em Settings → Secrets and variables → Actions:
+#
+#     • PORTAINER_DEPLOY_PRD_WEBHOOK_URL
+# -----------------------------------------------------------------------------
+
+name: 🚀 Deploy (Produção)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prd
+  cancel-in-progress: false
+
+jobs:
+  deploy-prd:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: 🚀 Trigger Portainer webhook (PRD)
+        env:
+          WEBHOOK_URL: ${{ secrets.PORTAINER_DEPLOY_PRD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "::error::PORTAINER_DEPLOY_PRD_WEBHOOK_URL secret is not set."
+            exit 1
+          fi
+          curl -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"marcelofmatos/vite_react_shadcn_ts"}' \
+            --fail --silent --show-error
+          echo "Production deploy triggered."

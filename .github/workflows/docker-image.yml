@@ -3,9 +3,7 @@ name: Docker image on GHCR
 on:
   push:
     branches:
-      #- 'marcelofmatos/vite_react_shadcn_ts'
-      - 'homolog'
-      - 'prod'
+      - '**'
     #tags:
     #  - '**'
   release:
@@ -27,11 +25,12 @@ jobs:
     - name: Log in to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-    - name: Convert repository and tag name to lowercase
+    - name: Convert repository name to lowercase and slugify branch/tag name
       id: lowercase_names
       run: |
         echo "repository_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-        echo "tag_name=$(echo ${{ github.ref_name }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        SLUG=$(echo "${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]' | sed -E 's#/+#-#g; s/[^a-z0-9._-]/-/g; s/^[-.]+//')
+        echo "tag_name=$SLUG" >> $GITHUB_ENV
 
     - name: Build Docker image
       run: docker build --build-arg APP_VERSION=${{ env.tag_name }} --build-arg GIT_COMMIT=$(git rev-parse --short HEAD) -t ghcr.io/${{ env.repository_name }}:${{ env.tag_name }} .
@@ -53,11 +52,12 @@ jobs:
       - name: Install Bash
         run: apk add --no-cache bash
 
-      - name: Convert repository and tag name to lowercase
+      - name: Convert repository name to lowercase and slugify branch/tag name
         id: lowercase_names
         run: |
           echo "repository_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "tag_name=$(echo ${{ github.ref_name }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          SLUG=$(echo "${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]' | sed -E 's#/+#-#g; s/[^a-z0-9._-]/-/g; s/^[-.]+//')
+          echo "tag_name=$SLUG" >> $GITHUB_ENV
 
       - name: Deploy Services
         run: |
