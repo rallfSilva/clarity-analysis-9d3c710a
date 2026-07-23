@@ -34,14 +34,28 @@ interface Analyst {
 
 function SituacaoBadge({ s, label }: { s: SituacaoNormalizada; label: string }) {
   const map: Record<SituacaoNormalizada, string> = {
-    conforme: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    parcial: 'bg-orange-100 text-orange-700 border-orange-200',
-    nao_conforme: 'bg-red-100 text-red-700 border-red-200',
-    nao_aplica: 'bg-gray-100 text-gray-600 border-gray-200',
+    conforme: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    parcial: 'bg-amber-50 text-amber-700 border-amber-200',
+    nao_conforme: 'bg-red-50 text-red-700 border-red-200',
+    nao_aplica: 'bg-gray-50 text-gray-600 border-gray-200',
   };
   return (
-    <span className={`inline-block px-3 py-1 rounded-md text-xs font-semibold border ${map[s]}`}>
+    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium border ${map[s]}`}>
       {label}
+    </span>
+  );
+}
+
+function CriticidadeBadge({ c }: { c: 'alta' | 'media' | 'baixa' }) {
+  const map = {
+    alta: { label: 'Alta', dot: 'bg-red-500', cls: 'bg-red-50 text-red-700 border-red-200' },
+    media: { label: 'Média', dot: 'bg-orange-500', cls: 'bg-orange-50 text-orange-700 border-orange-200' },
+    baixa: { label: 'Baixa', dot: 'bg-emerald-500', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  }[c];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${map.cls}`}>
+      <span className={`h-2 w-2 rounded-full ${map.dot}`} />
+      {map.label}
     </span>
   );
 }
