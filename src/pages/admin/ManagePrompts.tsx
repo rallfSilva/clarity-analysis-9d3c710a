@@ -399,6 +399,15 @@ export default function ManagePrompts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PromptAttachmentsDialog
+        open={!!attachmentsPrompt}
+        onOpenChange={(o) => !o && setAttachmentsPrompt(null)}
+        promptId={attachmentsPrompt?.id ?? null}
+        promptLabel={attachmentsPrompt?.document_type ?? ''}
+        onCountChange={(id, n) => setCounts((prev) => ({ ...prev, [id]: n }))}
+      />
     </div>
+
   );
 }
