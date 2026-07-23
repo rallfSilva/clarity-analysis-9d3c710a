@@ -21,6 +21,7 @@ import TermoReferencia from "./pages/upload/TermoReferencia";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import AuditLogs from "./pages/admin/AuditLogs";
+import ManagePrompts from "./pages/admin/ManagePrompts";
 import NotFound from "./pages/NotFound";
 import { Navigate } from "react-router-dom";
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin><DashboardLayout><AdminDashboard /></DashboardLayout></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute requireAdmin><DashboardLayout><ManageUsers /></DashboardLayout></ProtectedRoute>} />
             <Route path="/admin/audit" element={<ProtectedRoute requireAdmin><DashboardLayout><AuditLogs /></DashboardLayout></ProtectedRoute>} />
+            <Route path="/admin/prompts" element={<ProtectedRoute requireAdmin><DashboardLayout><ManagePrompts /></DashboardLayout></ProtectedRoute>} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

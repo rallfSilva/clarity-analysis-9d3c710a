@@ -128,6 +128,33 @@ export type Database = {
         }
         Relationships: []
       }
+      prompts: {
+        Row: {
+          created_at: string
+          document_type: string
+          id: string
+          is_active: boolean
+          prompt_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          id?: string
+          is_active?: boolean
+          prompt_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          id?: string
+          is_active?: boolean
+          prompt_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
