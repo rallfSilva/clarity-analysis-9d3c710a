@@ -1,4 +1,4 @@
-import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown, MessageSquare } from 'lucide-react';
+import { Home, Upload, FileText, BarChart3, Settings, HelpCircle, LogOut, Shield, Users, FileSearch, ChevronDown, MessageSquare, ListChecks } from 'lucide-react';
 import siacLogo from '@/assets/siac-logo.png';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -38,6 +38,7 @@ const adminItems = [
   { title: 'Gerenciar Usuários', url: '/admin/users', icon: Users },
   { title: 'Gerenciar Prompts', url: '/admin/prompts', icon: MessageSquare },
   { title: 'Auditoria & Logs', url: '/admin/audit', icon: FileSearch },
+  { title: 'Todas as Análises', url: '/admin/analyses', icon: ListChecks },
 ];
 
 const bottomItems = [
