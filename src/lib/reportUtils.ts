@@ -21,8 +21,8 @@ export interface NormalizedItem {
   observacao: string;
   recomendacao: string;
   fundamentacaoLegal: string[];
-  criticidade: 'alta' | 'media' | 'baixa';
 }
+
 
 export interface ResumoDocumento {
   processo?: string;
@@ -97,11 +97,6 @@ function splitObservacaoRecomendacao(text: string): { observacao: string; recome
   return { observacao: text, recomendacao: '' };
 }
 
-function criticidadeFromSituacao(s: SituacaoNormalizada): 'alta' | 'media' | 'baixa' {
-  if (s === 'nao_conforme') return 'alta';
-  if (s === 'parcial') return 'media';
-  return 'baixa';
-}
 
 /** Normalize both ETP and generic AI results into a single structure the UI uses. */
 export function normalizeReport(resultadoJson: any): NormalizedReport {
@@ -134,8 +129,8 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
         observacao,
         recomendacao,
         fundamentacaoLegal: legais,
-        criticidade: criticidadeFromSituacao(situacao),
       });
+
     });
   }
 
@@ -154,8 +149,8 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
         observacao: row.justificativa || '',
         recomendacao: row.recomendacao || '',
         fundamentacaoLegal: legais,
-        criticidade: criticidadeFromSituacao(situacao),
       });
+
     });
   }
 
@@ -196,11 +191,6 @@ export function situacaoColorClass(s: SituacaoNormalizada): string {
   }
 }
 
-export function criticidadeBadge(c: 'alta' | 'media' | 'baixa'): { label: string; className: string; icon: string } {
-  if (c === 'alta') return { label: 'Alta', className: 'bg-danger/10 text-danger border-danger/30', icon: '🔴' };
-  if (c === 'media') return { label: 'Média', className: 'bg-warning/10 text-warning border-warning/30', icon: '🟠' };
-  return { label: 'Baixa', className: 'bg-success/10 text-success border-success/30', icon: '🟢' };
-}
 
 export function processingDurationLabel(startISO: string, endISO?: string | null): string {
   if (!endISO) return '—';
