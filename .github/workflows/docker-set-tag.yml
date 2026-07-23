@@ -13,6 +13,8 @@ on:
 jobs:
   set-docker-tag:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     outputs:
       image_name: ${{ steps.set_outputs.outputs.image_name }}
       repository_name: ${{ steps.set_outputs.outputs.repository_name }}
