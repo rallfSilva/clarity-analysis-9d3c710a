@@ -64,6 +64,8 @@ export default function Analyses() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorAnalysis, setErrorAnalysis] = useState<Analysis | null>(null);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [selectedAnalyst, setSelectedAnalyst] = useState<{ name: string; email: string } | null>(null);
