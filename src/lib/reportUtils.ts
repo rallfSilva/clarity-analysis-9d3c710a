@@ -182,7 +182,9 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
     parecerFinal: conclusao.parecer_adequacao,
     diagnostico: conclusao.diagnostico_resumido,
     recomendacoes: Array.from(recomendacoes).filter(Boolean),
+    resumoDocumento: resultadoJson.resumo_documento,
   };
+
 }
 
 export function situacaoColorClass(s: SituacaoNormalizada): string {
