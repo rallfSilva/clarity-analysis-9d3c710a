@@ -89,9 +89,6 @@ const Index = () => {
             <a href="#features" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
             <a href="#docs" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
             <a href="#fluxo" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
-            <Button onClick={() => navigate('/auth')} className="shadow-elegant">
-              Acessar Sistema
-            </Button>
           </div>
         </div>
       </nav>
@@ -136,16 +133,8 @@ const Index = () => {
                 onClick={() => navigate('/auth')}
                 className="text-base font-bold px-8 py-6 shadow-elegant hover:-translate-y-0.5 transition-all"
               >
-                Começar Agora
+                Acessar Sistema
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => document.getElementById('fluxo')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-base font-bold px-8 py-6 bg-transparent border-white/25 text-sidebar-foreground hover:bg-white/10 hover:text-sidebar-foreground"
-              >
-                 
               </Button>
             </div>
 
