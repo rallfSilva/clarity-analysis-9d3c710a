@@ -21,6 +21,7 @@ import TermoReferencia from "./pages/upload/TermoReferencia";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import AuditLogs from "./pages/admin/AuditLogs";
+import ManagePrompts from "./pages/admin/ManagePrompts";
 import NotFound from "./pages/NotFound";
 import { Navigate } from "react-router-dom";
 
