@@ -68,6 +68,9 @@ export default function ManagePrompts() {
   const [form, setForm] = useState({ document_type: '', prompt_text: '', is_active: true });
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState<Prompt | null>(null);
+  const [attachmentsPrompt, setAttachmentsPrompt] = useState<Prompt | null>(null);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
 
   useEffect(() => {
     fetch();
