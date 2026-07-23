@@ -89,9 +89,6 @@ const Index = () => {
             <a href="#features" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
             <a href="#docs" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
             <a href="#fluxo" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
-            <Button onClick={() => navigate('/auth')} className="shadow-elegant">
-              Acessar Sistema
-            </Button>
           </div>
         </div>
       </nav>
