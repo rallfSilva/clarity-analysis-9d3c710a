@@ -52,13 +52,6 @@ function situacaoStyle(s: SituacaoNormalizada) {
   }
 }
 
-function criticidadeStyle(c: NormalizedItem['criticidade']) {
-  switch (c) {
-    case 'alta': return { bg: C.dangerBg, fg: C.dangerText, label: 'Alta' };
-    case 'media': return { bg: C.orangeBg, fg: C.orangeText, label: 'Média' };
-    default: return { bg: C.successBg, fg: C.successText, label: 'Baixa' };
-  }
-}
 
 export async function exportReportPDF(analysis: Analysis, analyst: Analyst | null, report: NormalizedReport) {
   const { jsPDF } = await import('jspdf');
@@ -216,12 +209,11 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
       startY: y,
       margin: { left: margin, right: margin },
       tableWidth: contentW,
-      head: [['Item', 'Elemento Avaliado', 'Situação', 'Criticidade', 'Observações / Evidências']],
+      head: [['Item', 'Elemento Avaliado', 'Situação', 'Observações / Evidências']],
       body: report.items.map((it) => [
         it.codigo,
         it.elemento,
         situacaoStyle(it.situacao).label,
-        criticidadeStyle(it.criticidade).label,
         [it.observacao, it.recomendacao].filter(Boolean).join('\n\n') || '—',
       ]),
       styles: {
@@ -245,10 +237,9 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
       alternateRowStyles: { fillColor: [250, 251, 253] as any },
       columnStyles: {
         0: { cellWidth: 16, fontStyle: 'bold', halign: 'left' },
-        1: { cellWidth: 55 },
-        2: { cellWidth: 28, halign: 'center', fontStyle: 'bold' },
-        3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-        4: { cellWidth: 'auto' },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 32, halign: 'center', fontStyle: 'bold' },
+        3: { cellWidth: 'auto' },
       },
       didParseCell: (data) => {
         if (data.section === 'body') {
@@ -258,10 +249,6 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
             const s = situacaoStyle(item.situacao);
             data.cell.styles.fillColor = s.bg as any;
             data.cell.styles.textColor = s.fg as any;
-          } else if (data.column.index === 3) {
-            const cr = criticidadeStyle(item.criticidade);
-            data.cell.styles.fillColor = cr.bg as any;
-            data.cell.styles.textColor = cr.fg as any;
           }
         }
       },
