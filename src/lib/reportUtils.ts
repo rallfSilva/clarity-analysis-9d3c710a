@@ -148,7 +148,7 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
       items.push({
         numero: i + 1,
         codigo: row.codigo || `#${i + 1}`,
-        elemento: row.codigo || `Item ${i + 1}`,
+        elemento: row.elemento_avaliado || row.item_verificado || row.codigo || `Item ${i + 1}`,
         situacao,
         situacaoLabel: situacaoLabel(situacao),
         observacao: row.justificativa || '',
@@ -158,6 +158,7 @@ export function normalizeReport(resultadoJson: any): NormalizedReport {
       });
     });
   }
+
 
   const totals = items.reduce(
     (acc, it) => {
