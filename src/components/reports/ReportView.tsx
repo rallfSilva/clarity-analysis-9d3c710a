@@ -169,58 +169,43 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
         {/* Tabela de Análise */}
         {report.items.length > 0 && (
           <Card className="rounded-xl border-border/60 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 bg-blue-50/60">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <ClipboardList className="h-5 w-5 text-blue-600" />
+                <div className="h-9 w-9 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <ClipboardList className="h-5 w-5 text-blue-700" />
                 </div>
-                <h3 className="text-base font-bold text-foreground">Tabela de Análise</h3>
+                <h3 className="text-base font-bold text-blue-900">Tabela de Análise Detalhada por Item</h3>
               </div>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-border text-muted-foreground bg-background">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-blue-200 text-blue-800 bg-white">
                 {report.items.length} itens
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="px-5 py-3 font-medium w-20">Item</th>
-                    <th className="px-5 py-3 font-medium">Elemento Avaliado</th>
-                    <th className="px-5 py-3 font-medium w-44 text-center">Situação</th>
-                    <th className="px-5 py-3 font-medium w-32 text-center">Criticidade</th>
+                  <tr className="text-left text-xs uppercase tracking-wide text-blue-900 bg-blue-50">
+                    <th className="px-4 py-3 font-semibold w-24 border border-border">Item</th>
+                    <th className="px-4 py-3 font-semibold w-64 border border-border">Elemento Avaliado</th>
+                    <th className="px-4 py-3 font-semibold w-44 text-center border border-border">Situação</th>
+                    <th className="px-4 py-3 font-semibold border border-border">Observações / Recomendações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.items.map((item) => {
-                    const obs = [item.observacao, item.recomendacao].filter(Boolean).join('\n\n');
+                  {report.items.map((item, idx) => {
+                    const obs = [item.observacao, item.recomendacao].filter(Boolean).join(' ');
                     return (
-                      <tr key={item.numero} className="border-t border-border/60 align-top">
-                        <td className="px-5 py-4 font-mono text-sm text-muted-foreground">
+                      <tr key={item.numero} className={`align-top ${idx % 2 === 1 ? 'bg-muted/20' : 'bg-background'}`}>
+                        <td className="px-4 py-3 font-mono text-xs text-foreground border border-border">
                           {item.codigo}
                         </td>
-                        <td className="px-5 py-4">
-                          <p className="text-foreground font-medium leading-snug mb-3">
-                            {item.elemento}
-                          </p>
-                          {obs && (
-                            <div className="rounded-lg border border-border/70 bg-muted/40 p-3 mt-2 max-w-2xl">
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
-                                  Observações / Evidências
-                                </span>
-                              </div>
-                              <p className="text-xs text-foreground/85 leading-relaxed whitespace-pre-line">
-                                {obs}
-                              </p>
-                            </div>
-                          )}
+                        <td className="px-4 py-3 text-foreground leading-snug border border-border">
+                          {item.elemento}
                         </td>
-                        <td className="px-5 py-4 text-center">
+                        <td className="px-4 py-3 text-center border border-border">
                           <SituacaoBadge s={item.situacao} label={item.situacaoLabel} />
                         </td>
-                        <td className="px-5 py-4 text-center">
-                          <CriticidadeBadge c={item.criticidade} />
+                        <td className="px-4 py-3 text-xs text-foreground/85 leading-relaxed border border-border whitespace-pre-line">
+                          {obs}
                         </td>
                       </tr>
                     );
