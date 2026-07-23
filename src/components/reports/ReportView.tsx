@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
-  FileText, Calendar, Clock, User, IdCard, Printer, Download, FileDown, Copy,
+  FileText, Calendar, Clock, User, IdCard, Printer, Download, FileDown, Copy, ClipboardList,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
