@@ -86,9 +86,19 @@ export default function ManagePrompts() {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else {
       setPrompts(data as Prompt[]);
+      // load attachment counts
+      const { data: atts } = await supabase
+        .from('prompt_attachments')
+        .select('prompt_id');
+      const map: Record<string, number> = {};
+      (atts ?? []).forEach((a: any) => {
+        map[a.prompt_id] = (map[a.prompt_id] ?? 0) + 1;
+      });
+      setCounts(map);
     }
     setLoading(false);
   };
+
 
   const filtered = useMemo(
     () =>
