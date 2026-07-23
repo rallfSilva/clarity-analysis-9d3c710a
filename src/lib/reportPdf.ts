@@ -78,13 +78,10 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   doc.text('SIAC', margin, 12);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Sistema integrado de análise de Conformidades', margin, 17);
+  doc.text('Sistema Integrado de Análise de Conformidades', margin, 17);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.text('Relatório de Análise de Conformidade', pageW - margin, 12, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text('Lei nº 14.133/2021', pageW - margin, 17, { align: 'right' });
 
   let y = 36;
 
