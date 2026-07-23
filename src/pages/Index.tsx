@@ -33,8 +33,8 @@ const Index = () => {
   const docs = [
     { code: 'ETP', name: 'Estudo Técnico Preliminar' },
     { code: 'TR', name: 'Termo de Referência' },
-    { code: 'DFD', name: 'Doc. de Formalização' },
-    { code: 'NT', name: 'Nota Técnica' },
+    { code: 'DFD', name: 'DOC. DE FORMALIZAÇÃO DA DEMANDA' },
+    { code: 'NT', name: 'NOTA TÉCNICA DE PESQUISA DE PREÇO' },
     { code: 'AR', name: 'Análise de Risco' },
   ];
 
@@ -69,8 +69,8 @@ const Index = () => {
     },
     {
       n: '3',
-      title: 'Emissão do Parecer',
-      desc: 'Relatório de apontamentos com sugestões de correção imediatas e prontas para assinatura.',
+      title: 'Emissão do Relatório',
+      desc: 'Relatório de conformidades, com apontamentos e recomendações de melhorias.',
     },
   ];
 
@@ -82,13 +82,13 @@ const Index = () => {
           <div className="flex flex-col items-center">
             <img src={siacLogo} alt="SIAC" className="h-11 w-auto object-contain" />
             <span className="text-[11px] font-semibold text-muted-foreground leading-tight">
-              Sistema integrado de análise de Conformidades
+              Sistema Integrado de Análise de Conformidades
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <a href="#features" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Funcionalidades</a>
-            <a href="#docs" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Documentos</a>
-            <a href="#fluxo" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Como funciona</a>
+            <a href="#features" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
+            <a href="#docs" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
+            <a href="#fluxo" className="hidden md:inline text-sm font-medium text-muted-foreground hover:text-primary transition-colors"> </a>
             <Button onClick={() => navigate('/auth')} className="shadow-elegant">
               Acessar Sistema
             </Button>
@@ -119,15 +119,15 @@ const Index = () => {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] tracking-tight">
-              Segurança Jurídica em{' '}
+              Sistema Integrado de{' '}
               <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                Tempo Real
+                Análise de Conformidades
               </span>
             </h1>
             <p className="mt-8 max-w-2xl text-lg md:text-xl leading-relaxed text-sidebar-foreground/75">
               A plataforma inteligente para análise automatizada de conformidade legal na
               administração pública. Otimize processos, mitigue riscos e garanta integridade
-              institucional em cada artefato de planejamento.
+              institucional em cada artefato de planejamento licitatório.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
@@ -145,7 +145,7 @@ const Index = () => {
                 onClick={() => document.getElementById('fluxo')?.scrollIntoView({ behavior: 'smooth' })}
                 className="text-base font-bold px-8 py-6 bg-transparent border-white/25 text-sidebar-foreground hover:bg-white/10 hover:text-sidebar-foreground"
               >
-                Conhecer a Metodologia
+                 
               </Button>
             </div>
 
@@ -160,7 +160,7 @@ const Index = () => {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-primary" />
-                Análise assistida por IA
+                Análise com apoio da IA
               </div>
             </div>
           </div>
@@ -212,7 +212,7 @@ const Index = () => {
               Uma nova geração de análise de conformidade
             </h2>
             <p className="mt-4 text-muted-foreground">
-              O SIAC utiliza modelos avançados para validar cada etapa do fluxo administrativo
+              O SIAC utiliza modelos avançados para validar cada artefato licitatório do fluxo de contratações públicas
               seguindo rigorosamente a Nova Lei de Licitações.
             </p>
           </div>
@@ -242,7 +242,7 @@ const Index = () => {
               Fluxo inteligente
             </p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Do upload ao parecer, em três etapas
+              Do upload ao relatório de conformidade, em três etapas
             </h2>
           </div>
 
@@ -296,16 +296,16 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <img src={siacLogo} alt="SIAC" className="h-8 w-auto object-contain" />
             <span className="text-xs font-bold tracking-widest text-muted-foreground">
-              Sistema integrado de análise de Conformidades
+              Sistema Integrado de Análise de Conformidades
             </span>
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            Sistema integrado de análise de Conformidades<br />
+            Sistema Integrado de Análise de Conformidades<br />
             SIAC © 2026 — Em conformidade com a LGPD e Lei 14.133/2021
           </p>
           <div className="flex gap-6 text-sm font-medium text-muted-foreground">
-            <a href="#features" className="hover:text-primary">Funcionalidades</a>
-            <a href="#fluxo" className="hover:text-primary">Fluxo</a>
+            <a href="#features" className="hover:text-primary"> </a>
+            <a href="#fluxo" className="hover:text-primary"> </a>
           </div>
         </div>
       </footer>
