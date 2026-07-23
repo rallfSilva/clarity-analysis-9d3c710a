@@ -36,6 +36,7 @@ const documentTypes = [
 const adminItems = [
   { title: 'Dashboard Admin', url: '/admin/dashboard', icon: Shield },
   { title: 'Gerenciar Usuários', url: '/admin/users', icon: Users },
+  { title: 'Gerenciar Prompts', url: '/admin/prompts', icon: MessageSquare },
   { title: 'Auditoria & Logs', url: '/admin/audit', icon: FileSearch },
 ];
 
