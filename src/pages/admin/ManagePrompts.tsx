@@ -44,6 +44,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PromptAttachmentsDialog } from '@/components/admin/PromptAttachmentsDialog';
+
 
 interface Prompt {
   id: string;
@@ -66,6 +68,9 @@ export default function ManagePrompts() {
   const [form, setForm] = useState({ document_type: '', prompt_text: '', is_active: true });
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState<Prompt | null>(null);
+  const [attachmentsPrompt, setAttachmentsPrompt] = useState<Prompt | null>(null);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
 
   useEffect(() => {
     fetch();
@@ -81,9 +86,19 @@ export default function ManagePrompts() {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else {
       setPrompts(data as Prompt[]);
+      // load attachment counts
+      const { data: atts } = await supabase
+        .from('prompt_attachments')
+        .select('prompt_id');
+      const map: Record<string, number> = {};
+      (atts ?? []).forEach((a: any) => {
+        map[a.prompt_id] = (map[a.prompt_id] ?? 0) + 1;
+      });
+      setCounts(map);
     }
     setLoading(false);
   };
+
 
   const filtered = useMemo(
     () =>
@@ -246,8 +261,8 @@ export default function ManagePrompts() {
               </TableRow>
             ) : (
               filtered.map((p) => {
-                const words = p.prompt_text.split(/\s+/).length;
                 return (
+
                   <TableRow key={p.id}>
                     <TableCell>
                       <Badge variant="outline" className="rounded-full font-medium">
@@ -270,12 +285,19 @@ export default function ManagePrompts() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end items-center gap-1">
-                        <div className="relative">
-                          <Paperclip className="h-4 w-4 text-muted-foreground" />
-                          <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
-                            {Math.min(words, 9) === 9 && words > 9 ? '9+' : words}
-                          </span>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAttachmentsPrompt(p)}
+                          title="Arquivos de referência"
+                          className="relative h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center"
+                        >
+                          <Paperclip className="h-4 w-4 text-primary" />
+                          {(counts[p.id] ?? 0) > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                              {(counts[p.id] ?? 0) > 9 ? '9+' : counts[p.id]}
+                            </span>
+                          )}
+                        </button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
                           <Pencil className="h-4 w-4 text-muted-foreground" />
                         </Button>
@@ -289,6 +311,7 @@ export default function ManagePrompts() {
                         </Button>
                       </div>
                     </TableCell>
+
                   </TableRow>
                 );
               })
@@ -376,6 +399,15 @@ export default function ManagePrompts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PromptAttachmentsDialog
+        open={!!attachmentsPrompt}
+        onOpenChange={(o) => !o && setAttachmentsPrompt(null)}
+        promptId={attachmentsPrompt?.id ?? null}
+        promptLabel={attachmentsPrompt?.document_type ?? ''}
+        onCountChange={(id, n) => setCounts((prev) => ({ ...prev, [id]: n }))}
+      />
     </div>
+
   );
 }
