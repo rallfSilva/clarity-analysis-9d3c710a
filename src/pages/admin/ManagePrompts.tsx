@@ -195,11 +195,11 @@ export default function ManagePrompts() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {kpis.map((k) => (
-          <Card key={k.label} className="border-border/60">
-            <CardContent className="p-5">
-              <p className="text-xs font-medium text-muted-foreground">{k.label}</p>
-              <p className={`text-3xl font-bold mt-2 ${k.color}`}>{k.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{k.hint}</p>
+          <Card key={k.label} className="border-border/50 rounded-xl bg-card shadow-none">
+            <CardContent className="p-6">
+              <p className="text-sm font-medium text-muted-foreground">{k.label}</p>
+              <p className={`text-4xl font-bold mt-3 ${k.color}`}>{k.value}</p>
+              <p className="text-xs text-muted-foreground mt-2">{k.hint}</p>
             </CardContent>
           </Card>
         ))}
