@@ -470,6 +470,62 @@ export default function Analyses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Ocorreu um erro na análise
+            </DialogTitle>
+          </DialogHeader>
+          {errorAnalysis && (() => {
+            const info = getFriendlyError(errorAnalysis);
+            return (
+              <div className="space-y-4 text-sm">
+                <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+                  <p><span className="font-medium text-foreground">Processo:</span> {errorAnalysis.processo}</p>
+                  <p><span className="font-medium text-foreground">Tipo:</span> {errorAnalysis.tipo_documento}</p>
+                  <p>
+                    <span className="font-medium text-foreground">Data:</span>{' '}
+                    {format(new Date(errorAnalysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                  <p className="font-semibold text-destructive mb-1">{info.title}</p>
+                  <p className="text-foreground">{info.message}</p>
+                </div>
+
+                <div>
+                  <p className="font-medium text-foreground mb-2">O que você pode fazer:</p>
+                  <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                    <li>Verifique se o arquivo enviado é um PDF válido e legível.</li>
+                    <li>Tente reprocessar a análise em alguns instantes.</li>
+                    <li>Se o erro persistir, contate o administrador do sistema.</li>
+                  </ul>
+                </div>
+
+                {info.raw && (
+                  <details className="text-xs text-muted-foreground">
+                    <summary className="cursor-pointer hover:text-foreground">Detalhes técnicos</summary>
+                    <pre className="mt-2 p-2 bg-muted rounded overflow-x-auto whitespace-pre-wrap break-words">
+                      {String(info.raw)}
+                    </pre>
+                  </details>
+                )}
+
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={() => setErrorDialogOpen(false)}>
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
