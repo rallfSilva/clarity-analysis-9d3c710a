@@ -261,8 +261,8 @@ export default function ManagePrompts() {
               </TableRow>
             ) : (
               filtered.map((p) => {
-                const words = p.prompt_text.split(/\s+/).length;
                 return (
+
                   <TableRow key={p.id}>
                     <TableCell>
                       <Badge variant="outline" className="rounded-full font-medium">
