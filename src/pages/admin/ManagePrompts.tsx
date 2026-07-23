@@ -285,12 +285,19 @@ export default function ManagePrompts() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end items-center gap-1">
-                        <div className="relative">
-                          <Paperclip className="h-4 w-4 text-muted-foreground" />
-                          <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
-                            {Math.min(words, 9) === 9 && words > 9 ? '9+' : words}
-                          </span>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAttachmentsPrompt(p)}
+                          title="Arquivos de referência"
+                          className="relative h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center"
+                        >
+                          <Paperclip className="h-4 w-4 text-primary" />
+                          {(counts[p.id] ?? 0) > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                              {(counts[p.id] ?? 0) > 9 ? '9+' : counts[p.id]}
+                            </span>
+                          )}
+                        </button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
                           <Pencil className="h-4 w-4 text-muted-foreground" />
                         </Button>
@@ -304,6 +311,7 @@ export default function ManagePrompts() {
                         </Button>
                       </div>
                     </TableCell>
+
                   </TableRow>
                 );
               })
