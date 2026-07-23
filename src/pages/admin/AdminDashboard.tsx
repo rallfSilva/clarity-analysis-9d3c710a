@@ -192,7 +192,7 @@ export default function AdminDashboard() {
       title: 'Gerenciar Prompts',
       desc: 'Configure prompts para análise de documentos',
       icon: MessageSquare,
-      to: '/settings',
+      to: '/admin/prompts',
     },
     {
       title: 'Logs de Auditoria',
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
       title: 'Todas as Análises',
       desc: 'Visualize e gerencie todas as análises do sistema',
       icon: BarChart3,
-      to: '/analyses',
+      to: '/admin/analyses',
     },
     {
       title: 'Configurações',
