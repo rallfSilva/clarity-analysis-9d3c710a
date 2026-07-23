@@ -1,27 +1,37 @@
-## Objetivo
+## Nova aba "Todas as Análises" (Admin)
 
-Ajustar apenas o layout dos 3 cards de KPI (Total de Prompts, Ativos, Inativos) em `src/pages/admin/ManagePrompts.tsx` para bater fielmente com o mockup. Tabela, busca, modal e lógica ficam intactos.
+Criar uma página administrativa que replica fielmente o layout do mockup, listando todas as análises do sistema com busca, ações por linha e ações globais no topo.
 
-## Mudanças visuais nos KPIs
+### 1. Navegação
+- `src/components/AppSidebar.tsx`: adicionar item **"Todas as Análises"** (ícone `ListChecks`) na seção **Administração**, apenas para admins, após "Auditoria & Logs".
+- `src/App.tsx`: registrar rota `/admin/analyses` protegida por admin.
 
-Arquivo: `src/pages/admin/ManagePrompts.tsx`
+### 2. Página `src/pages/admin/AllAnalyses.tsx`
+Cabeçalho:
+- Título "Todas as Análises" + subtítulo "Visualize e gerencie todas as análises de conformidade do sistema".
+- Botões no topo direito: **Processar** (ícone play) e **Atualizar** (ícone refresh).
 
-- Cards mais amplos e "arejados":
-  - Padding interno maior (`p-6` em vez de `p-5`).
-  - Fundo branco puro (`bg-card`), borda sutil `border-border/50`, cantos `rounded-xl`, sem sombra pesada.
-- Tipografia dos KPIs igual ao mockup:
-  - Rótulo: `text-sm font-medium text-muted-foreground` (não uppercase, não `text-xs`).
-  - Número: `text-4xl font-bold`, com espaçamento maior acima (`mt-3`).
-  - Hint: `text-xs text-muted-foreground mt-2`.
-- Cores por card:
-  - Total de Prompts → número em `text-foreground` (preto/navy).
-  - Ativos → número em verde `text-emerald-600` (mantém).
-  - Inativos → número em `text-foreground` quando > 0, `text-muted-foreground` quando 0 (mockup mostra `0` mais apagado, já é o caso).
-- Grid mantém `grid-cols-1 md:grid-cols-3 gap-4`.
+Busca:
+- Input único com placeholder "Buscar por processo, tipo de documento, usuário ou e-mail…" filtrando client-side por processo, tipo, nome e e-mail do usuário.
 
-Nada mais é alterado (tabela, contador do clipe, modal, ações permanecem como estão).
+Tabela com colunas: Data/Hora · Usuário (nome + e-mail, ícone user) · Processo · Tipo · Status (badge azul "Concluído", etc.) · Conformidade (%) · Ações.
 
-## Fora de escopo
+Ações por linha:
+- **Ver** (olho): abre o `ReportView` em Dialog (mesmo componente já usado em `Analyses.tsx`).
+- **Reprocessar** (refresh circular): reenvia a análise para a edge function `analyze-document` (reset de status para `pending`, dispara invocação, toast de progresso).
+- **Excluir** (lixeira): confirmação via `AlertDialog` e delete.
 
-- Contador do ícone de clipe (fica como está por ora — usuário indicou que representa anexos, mas isso exigiria nova tabela/relacionamento; trataremos em uma solicitação separada quando decidirmos o modelo de anexos).
-- Remoção do tipo "DFD do PCA" do select (não solicitado agora).
+Botões globais:
+- **Atualizar**: refetch da lista.
+- **Processar**: percorre análises com status `pending`/`error` e chama a edge function para cada uma em sequência, com toast de progresso e refetch ao final. Desabilitado quando não houver pendentes.
+
+### 3. Dados
+- Query em `analyses` (sem filtro por `user_id`, pois admin) fazendo join manual com `profiles` (name, email) via segunda consulta agrupada por `user_id`. Ordenação `created_at desc`.
+- Realtime subscription no canal `analyses` (evento `*`) para refresh automático, como já feito em `Analyses.tsx`.
+
+### 4. Detalhes técnicos
+- Reutilizar componentes: `Table`, `Badge`, `Button`, `Input`, `AlertDialog`, `Dialog`, `Progress`, `ReportView`, `normalizeReport`.
+- Ícones: `Eye`, `RefreshCw`, `Trash2`, `Play`, `Filter`, `User`, `ListChecks`.
+- Status badges com as mesmas cores atuais + variante "Concluído" azul (`bg-primary/10 text-primary`) equivalente ao "success" do mockup.
+- Sem alterações em `Minhas Análises` do usuário (mantida como está).
+- Sem mudanças de schema — as políticas RLS existentes já permitem admin ler/atualizar/excluir todas as análises.
