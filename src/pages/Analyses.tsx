@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Eye, Download, Trash2, Filter, Loader2 } from 'lucide-react';
+import { Eye, Download, Trash2, Filter, Loader2, AlertCircle } from 'lucide-react';
 import { AnalysisProgress } from '@/components/AnalysisProgress';
 import { ReportView } from '@/components/reports/ReportView';
 import { normalizeReport } from '@/lib/reportUtils';
@@ -53,6 +53,93 @@ interface Analysis {
 }
 
 
+function getFriendlyError(analysis: Analysis): { title: string; message: string; raw?: string } {
+  const raw =
+    analysis.resultado_json?.error ||
+    analysis.resultado_json?.message ||
+    analysis.resultado_json?.detalhe ||
+    analysis.resultado_json?.detail ||
+    '';
+  const text = String(raw).toLowerCase();
+
+  if (!text) {
+    return {
+      title: 'Falha inesperada',
+      message:
+        'Ocorreu uma falha inesperada durante a análise. Tente reprocessar o documento ou contate o administrador do sistema.',
+    };
+  }
+  if (text.includes('timeout') || text.includes('timed out') || text.includes('deadline')) {
+    return {
+      title: 'Tempo de processamento excedido',
+      message:
+        'O tempo para processar o documento foi excedido. Isso pode ocorrer com arquivos muito grandes. Tente novamente ou envie um PDF menor.',
+      raw,
+    };
+  }
+  if (text.includes('rate limit') || text.includes('429') || text.includes('too many')) {
+    return {
+      title: 'Limite de requisições atingido',
+      message:
+        'O limite de requisições da IA foi atingido temporariamente. Aguarde alguns minutos e tente reprocessar a análise.',
+      raw,
+    };
+  }
+  if (text.includes('402') || text.includes('payment') || text.includes('credit') || text.includes('insufficient')) {
+    return {
+      title: 'Créditos de IA insuficientes',
+      message:
+        'Não há créditos de IA disponíveis para concluir a análise. Contate o administrador do sistema para regularizar.',
+      raw,
+    };
+  }
+  if (text.includes('unsupported') || text.includes('invalid file') || text.includes('formato') || text.includes('mime')) {
+    return {
+      title: 'Formato de arquivo inválido',
+      message:
+        'O arquivo enviado está em um formato não suportado ou corrompido. Envie um PDF válido e tente novamente.',
+      raw,
+    };
+  }
+  if (
+    text.includes('extract') ||
+    text.includes('empty') ||
+    text.includes('vazio') ||
+    text.includes('scanned') ||
+    text.includes('imagem')
+  ) {
+    return {
+      title: 'Não foi possível ler o documento',
+      message:
+        'Não conseguimos extrair o conteúdo do PDF. Verifique se o arquivo não está protegido por senha ou digitalizado apenas como imagem (sem texto reconhecível).',
+      raw,
+    };
+  }
+  if (text.includes('network') || text.includes('fetch') || text.includes('econnreset')) {
+    return {
+      title: 'Falha de comunicação',
+      message:
+        'Houve uma falha de comunicação com o serviço de análise. Verifique sua conexão e tente reprocessar em instantes.',
+      raw,
+    };
+  }
+  if (text.includes('json') || text.includes('parse')) {
+    return {
+      title: 'Resposta da IA inválida',
+      message:
+        'A IA retornou uma resposta que não pôde ser interpretada. Tente reprocessar o documento; se persistir, contate o suporte.',
+      raw,
+    };
+  }
+  return {
+    title: 'Erro durante a análise',
+    message:
+      'Ocorreu um erro ao processar o documento. Tente reprocessar a análise; se o problema persistir, contate o administrador do sistema.',
+    raw,
+  };
+}
+
+
 export default function Analyses() {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
@@ -64,6 +151,8 @@ export default function Analyses() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorAnalysis, setErrorAnalysis] = useState<Analysis | null>(null);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [selectedAnalyst, setSelectedAnalyst] = useState<{ name: string; email: string } | null>(null);
@@ -304,6 +393,20 @@ export default function Analyses() {
                           )}
                         </Button>
                       )}
+                      {analysis.status === 'error' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setErrorAnalysis(analysis);
+                            setErrorDialogOpen(true);
+                          }}
+                          title="Ver detalhes do erro"
+                          aria-label={`Ver erro da análise ${analysis.processo}`}
+                        >
+                          <AlertCircle className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="ghost"
@@ -367,6 +470,62 @@ export default function Analyses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Ocorreu um erro na análise
+            </DialogTitle>
+          </DialogHeader>
+          {errorAnalysis && (() => {
+            const info = getFriendlyError(errorAnalysis);
+            return (
+              <div className="space-y-4 text-sm">
+                <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
+                  <p><span className="font-medium text-foreground">Processo:</span> {errorAnalysis.processo}</p>
+                  <p><span className="font-medium text-foreground">Tipo:</span> {errorAnalysis.tipo_documento}</p>
+                  <p>
+                    <span className="font-medium text-foreground">Data:</span>{' '}
+                    {format(new Date(errorAnalysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                  <p className="font-semibold text-destructive mb-1">{info.title}</p>
+                  <p className="text-foreground">{info.message}</p>
+                </div>
+
+                <div>
+                  <p className="font-medium text-foreground mb-2">O que você pode fazer:</p>
+                  <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                    <li>Verifique se o arquivo enviado é um PDF válido e legível.</li>
+                    <li>Tente reprocessar a análise em alguns instantes.</li>
+                    <li>Se o erro persistir, contate o administrador do sistema.</li>
+                  </ul>
+                </div>
+
+                {info.raw && (
+                  <details className="text-xs text-muted-foreground">
+                    <summary className="cursor-pointer hover:text-foreground">Detalhes técnicos</summary>
+                    <pre className="mt-2 p-2 bg-muted rounded overflow-x-auto whitespace-pre-wrap break-words">
+                      {String(info.raw)}
+                    </pre>
+                  </details>
+                )}
+
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={() => setErrorDialogOpen(false)}>
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
