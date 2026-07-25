@@ -55,7 +55,16 @@ interface Prompt {
   updated_at: string;
 }
 
-const DOC_TYPES = ['Análise de Risco', 'DFD', 'DFD do PCA', 'ETP', 'Nota Técnica', 'Termo de Referência'];
+// value = slug gravado em prompts.document_type (mesmo formato do banco/n8n/relatórios);
+// label = nome de exibição mostrado no select.
+const DOC_TYPES = [
+  { value: 'dfd', label: 'DFD' },
+  { value: 'dfd-pca', label: 'DFD do PCA' },
+  { value: 'etp', label: 'ETP' },
+  { value: 'nota-tecnica', label: 'Nota Técnica' },
+  { value: 'analise-risco', label: 'Análise de Risco' },
+  { value: 'termo-referencia', label: 'Termo de Referência' },
+];
 
 export default function ManagePrompts() {
   const { toast } = useToast();
@@ -342,8 +351,8 @@ export default function ManagePrompts() {
                 </SelectTrigger>
                 <SelectContent>
                   {DOC_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
