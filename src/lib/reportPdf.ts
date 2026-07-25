@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { NormalizedReport, NormalizedItem, SituacaoNormalizada } from './reportUtils';
 import { processingDurationLabel } from './reportUtils';
+import { getDocumentTypeById } from './documentTypes';
 
 interface Analysis {
   id: string;
@@ -68,6 +69,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   const analystName = analyst?.name || 'Analista não identificado';
   const analystEmail = analyst?.email || '—';
   const analystShortId = analysis.user_id.slice(0, 8);
+  const tipoLabel = getDocumentTypeById(analysis.tipo_documento)?.shortName ?? analysis.tipo_documento;
 
   // ============ Header (navy band) ============
   doc.setFillColor(...C.navy);
@@ -101,7 +103,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   const col1X = margin + 5;
   const col2X = margin + contentW / 2 + 2;
   const rows: Array<[string, string, string, string]> = [
-    ['Processo', analysis.processo || '—', 'Tipo', analysis.tipo_documento],
+    ['Processo', analysis.processo || '—', 'Tipo', tipoLabel],
     ['Data', format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }), 'Tempo', tempo],
     ['Analista', analystName, 'E-mail', analystEmail],
   ];
@@ -309,7 +311,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
     doc.text(`Página ${i} de ${total}`, pageW - margin, pageH - 6, { align: 'right' });
   }
 
-  const fileName = `Relatorio_${analysis.tipo_documento.replace(/\s+/g, '_')}_${(analysis.processo || 'sem-processo').replace(/[\/\\]/g, '_')}_${format(new Date(analysis.created_at), 'ddMMyyyy')}.pdf`;
+  const fileName = `Relatorio_${tipoLabel.replace(/\s+/g, '_')}_${(analysis.processo || 'sem-processo').replace(/[\/\\]/g, '_')}_${format(new Date(analysis.created_at), 'ddMMyyyy')}.pdf`;
   doc.save(fileName);
 }
 

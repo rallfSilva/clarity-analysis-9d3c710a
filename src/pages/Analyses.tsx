@@ -6,6 +6,7 @@ import { AnalysisProgress } from '@/components/AnalysisProgress';
 import { ReportView } from '@/components/reports/ReportView';
 import { normalizeReport } from '@/lib/reportUtils';
 import { exportReportPDF } from '@/lib/reportPdf';
+import { getDocumentTypeById } from '@/lib/documentTypes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -340,7 +341,7 @@ export default function Analyses() {
                     {format(new Date(analysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </TableCell>
                   <TableCell>{analysis.processo}</TableCell>
-                  <TableCell>{analysis.tipo_documento}</TableCell>
+                  <TableCell>{getDocumentTypeById(analysis.tipo_documento)?.shortName ?? analysis.tipo_documento}</TableCell>
                   <TableCell>{getStatusBadge(analysis.status)}</TableCell>
                   <TableCell>
                     {analysis.conformidade_percentual !== null ? (
@@ -486,7 +487,7 @@ export default function Analyses() {
               <div className="space-y-4 text-sm">
                 <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
                   <p><span className="font-medium text-foreground">Processo:</span> {errorAnalysis.processo}</p>
-                  <p><span className="font-medium text-foreground">Tipo:</span> {errorAnalysis.tipo_documento}</p>
+                  <p><span className="font-medium text-foreground">Tipo:</span> {getDocumentTypeById(errorAnalysis.tipo_documento)?.shortName ?? errorAnalysis.tipo_documento}</p>
                   <p>
                     <span className="font-medium text-foreground">Data:</span>{' '}
                     {format(new Date(errorAnalysis.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}

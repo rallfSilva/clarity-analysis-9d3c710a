@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { getDocumentTypeById } from '@/lib/documentTypes';
 
 interface RecentItem {
   id: string;
@@ -13,19 +14,6 @@ interface RecentItem {
   conformidade_percentual?: number | null;
   created_at: string;
 }
-
-const TYPE_LABEL: Record<string, string> = {
-  etp: 'Estudo Técnico Preliminar',
-  ETP: 'Estudo Técnico Preliminar',
-  dfd: 'Documento de Formalização da Demanda',
-  DFD: 'Documento de Formalização da Demanda',
-  'termo-referencia': 'Termo de Referência',
-  TR: 'Termo de Referência',
-  'nota-tecnica': 'Nota Técnica',
-  NT: 'Nota Técnica',
-  'analise-risco': 'Análise de Risco',
-  AR: 'Análise de Risco',
-};
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -58,6 +46,7 @@ export function RecentAnalyses({ items }: { items: RecentItem[] }) {
               day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
             });
             const pct = Number(it.conformidade_percentual ?? 0);
+            const docType = getDocumentTypeById(it.tipo_documento);
             return (
               <div key={it.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors">
                 <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -65,10 +54,10 @@ export function RecentAnalyses({ items }: { items: RecentItem[] }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
-                    {it.processo || it.id.slice(0, 8)} - {TYPE_LABEL[it.tipo_documento] ?? it.tipo_documento}
+                    {it.processo || it.id.slice(0, 8)} - {docType?.name ?? it.tipo_documento}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {it.tipo_documento} · {date}
+                    {docType?.shortName ?? it.tipo_documento} · {date}
                   </p>
                 </div>
                 <div className="hidden sm:block">{statusBadge(it.status)}</div>

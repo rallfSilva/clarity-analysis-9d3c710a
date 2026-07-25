@@ -66,6 +66,10 @@ const DOC_TYPES = [
   { value: 'termo-referencia', label: 'Termo de Referência' },
 ];
 
+function getDocTypeLabel(value: string): string {
+  return DOC_TYPES.find((t) => t.value === value)?.label ?? value;
+}
+
 export default function ManagePrompts() {
   const { toast } = useToast();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -275,7 +279,7 @@ export default function ManagePrompts() {
                   <TableRow key={p.id}>
                     <TableCell>
                       <Badge variant="outline" className="rounded-full font-medium">
-                        {p.document_type}
+                        {getDocTypeLabel(p.document_type)}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-md">
@@ -399,7 +403,7 @@ export default function ManagePrompts() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover prompt?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação removerá permanentemente o prompt de "{toDelete?.document_type}".
+              Esta ação removerá permanentemente o prompt de "{toDelete ? getDocTypeLabel(toDelete.document_type) : ''}".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -413,7 +417,7 @@ export default function ManagePrompts() {
         open={!!attachmentsPrompt}
         onOpenChange={(o) => !o && setAttachmentsPrompt(null)}
         promptId={attachmentsPrompt?.id ?? null}
-        promptLabel={attachmentsPrompt?.document_type ?? ''}
+        promptLabel={attachmentsPrompt ? getDocTypeLabel(attachmentsPrompt.document_type) : ''}
         onCountChange={(id, n) => setCounts((prev) => ({ ...prev, [id]: n }))}
       />
     </div>

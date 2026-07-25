@@ -13,6 +13,7 @@ import {
   type SituacaoNormalizada,
 } from '@/lib/reportUtils';
 import { exportReportPDF } from '@/lib/reportPdf';
+import { getDocumentTypeById } from '@/lib/documentTypes';
 
 interface Analysis {
   id: string;
@@ -70,12 +71,14 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
   const conformidade = analysis.conformidade_percentual ?? report.conformidadePercentual ?? 0;
   const tempo = processingDurationLabel(analysis.created_at, analysis.completed_at);
   const analystShortId = analysis.user_id.slice(0, 8);
+  const tipoLabel = getDocumentTypeById(analysis.tipo_documento)?.name ?? analysis.tipo_documento;
+  const tipoShortLabel = getDocumentTypeById(analysis.tipo_documento)?.shortName ?? analysis.tipo_documento;
 
   const total = report.items.length;
 
   const copySummary = async () => {
     const summary = [
-      `Relatório — ${analysis.tipo_documento}`,
+      `Relatório — ${tipoLabel}`,
       `Processo: ${analysis.processo}`,
       `Conformidade: ${conformidade.toFixed(1)}%`,
       report.diagnostico ? `\nDiagnóstico: ${report.diagnostico}` : '',
@@ -92,7 +95,7 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Relatorio_${analysis.tipo_documento}_${analysis.processo || 'sem-processo'}.doc`;
+    a.download = `Relatorio_${tipoShortLabel}_${analysis.processo || 'sem-processo'}.doc`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -150,7 +153,7 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Tipo de Documento</p>
-                <p className="font-semibold text-foreground">{analysis.tipo_documento}</p>
+                <p className="font-semibold text-foreground">{tipoLabel}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Status</p>
@@ -207,7 +210,7 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
           <Card className="rounded-xl border-border/60 overflow-hidden">
             <div className="text-center py-4 px-5 bg-muted/40 border-b border-border/60">
               <h4 className="text-lg font-bold text-foreground">
-                Relatório de Análise de Conformidades — {analysis.tipo_documento}
+                Relatório de Análise de Conformidades — {tipoLabel}
               </h4>
             </div>
             {(rd?.processo || rd?.secretaria || rd?.objeto || rd?.base_normativa || rd?.responsaveis) && (

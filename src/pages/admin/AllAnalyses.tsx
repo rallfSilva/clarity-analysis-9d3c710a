@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Eye, RefreshCw, Trash2, Filter, Loader2, Play, User as UserIcon } from 'lucide-react';
 import { ReportView } from '@/components/reports/ReportView';
+import { getDocumentTypeById } from '@/lib/documentTypes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -291,7 +292,7 @@ export default function AllAnalyses() {
                       </div>
                     </TableCell>
                     <TableCell>{analysis.processo}</TableCell>
-                    <TableCell>{analysis.tipo_documento}</TableCell>
+                    <TableCell>{getDocumentTypeById(analysis.tipo_documento)?.shortName ?? analysis.tipo_documento}</TableCell>
                     <TableCell>{getStatusBadge(analysis.status)}</TableCell>
                     <TableCell>
                       {analysis.conformidade_percentual !== null
