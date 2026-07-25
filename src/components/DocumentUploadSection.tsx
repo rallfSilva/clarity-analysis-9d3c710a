@@ -5,7 +5,9 @@ import { Upload as UploadIcon, FileText, Loader2, CheckCircle2, CheckCircle } fr
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SECRETARIAS } from '@/lib/secretarias';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +37,7 @@ export function DocumentUploadSection({
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [processo, setProcesso] = useState('');
+  const [secretaria, setSecretaria] = useState('');
   const [step, setStep] = useState<AnalysisStep>(0);
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState(false);
@@ -78,7 +81,7 @@ export function DocumentUploadSection({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!file || !processo || !user) {
+    if (!file || !processo || !secretaria || !user) {
       toast({
         title: 'Erro',
         description: 'Preencha todos os campos obrigatórios',
@@ -116,6 +119,7 @@ export function DocumentUploadSection({
         .insert({
           user_id: user.id,
           processo,
+          secretaria,
           tipo_documento: tipo,
           arquivo_url: urlData.publicUrl,
           status: 'pending',
@@ -134,6 +138,7 @@ export function DocumentUploadSection({
           analysis_id: analysis.id,
           user_id: user.id,
           processo,
+          secretaria,
           tipo_documento: tipo,
           arquivo_url: urlData.publicUrl,
           file_name: file.name,
@@ -168,6 +173,7 @@ export function DocumentUploadSection({
         details: {
           analysis_id: analysis.id,
           processo,
+          secretaria,
           tipo_documento: tipo,
         },
       });
@@ -180,6 +186,7 @@ export function DocumentUploadSection({
       // Reset form fields but keep progress panel visible
       setFile(null);
       setProcesso('');
+      setSecretaria('');
     } catch (error: any) {
       console.error('Upload error:', error);
       setAnalysisError(true);
@@ -317,8 +324,24 @@ export function DocumentUploadSection({
           />
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="secretaria">Secretaria Demandante *</Label>
+          <Select value={secretaria} onValueChange={setSecretaria}>
+            <SelectTrigger id="secretaria">
+              <SelectValue placeholder="Selecione a secretaria" />
+            </SelectTrigger>
+            <SelectContent>
+              {SECRETARIAS.map((s) => (
+                <SelectItem key={s.sigla} value={s.sigla}>
+                  {s.sigla} — {s.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex justify-end">
-          <Button type="submit" disabled={uploading || !file || !processo} size="lg">
+          <Button type="submit" disabled={uploading || !file || !processo || !secretaria} size="lg">
             {uploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

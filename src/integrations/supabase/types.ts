@@ -26,6 +26,8 @@ export type Database = {
           relatorio_html: string | null
           relatorio_texto: string | null
           resultado_json: Json | null
+          secretaria: string
+          started_at: string | null
           status: Database["public"]["Enums"]["analysis_status"]
           tipo_documento: string
           user_id: string
@@ -41,6 +43,8 @@ export type Database = {
           relatorio_html?: string | null
           relatorio_texto?: string | null
           resultado_json?: Json | null
+          secretaria?: string
+          started_at?: string | null
           status?: Database["public"]["Enums"]["analysis_status"]
           tipo_documento: string
           user_id: string
@@ -56,6 +60,8 @@ export type Database = {
           relatorio_html?: string | null
           relatorio_texto?: string | null
           resultado_json?: Json | null
+          secretaria?: string
+          started_at?: string | null
           status?: Database["public"]["Enums"]["analysis_status"]
           tipo_documento?: string
           user_id?: string
@@ -101,6 +107,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          secretaria: string | null
           settings: Json | null
           updated_at: string
         }
@@ -112,6 +119,7 @@ export type Database = {
           id: string
           is_active?: boolean
           name: string
+          secretaria?: string | null
           settings?: Json | null
           updated_at?: string
         }
@@ -123,6 +131,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          secretaria?: string | null
           settings?: Json | null
           updated_at?: string
         }

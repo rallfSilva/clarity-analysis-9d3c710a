@@ -51,6 +51,16 @@ export function useDashboardData(period: Period = 30) {
         });
       }
 
+      // Demandas por secretaria no período selecionado (dado real do banco)
+      const secretariaCount = new Map<string, number>();
+      periodItems.forEach((a) => {
+        const key = a.secretaria || 'Não informado';
+        secretariaCount.set(key, (secretariaCount.get(key) || 0) + 1);
+      });
+      const bySecretaria = Array.from(secretariaCount.entries())
+        .map(([secretaria, quantidade]) => ({ secretaria, quantidade }))
+        .sort((a, b) => b.quantidade - a.quantidade);
+
       return {
         kpis: {
           total: periodItems.length,
@@ -59,6 +69,7 @@ export function useDashboardData(period: Period = 30) {
           emProcessamento: emAndamento.length + pendentes.length,
           naoConformidades: naoConformes.length,
         },
+        bySecretaria,
         statusDistribution: [
           { name: 'Concluídas', value: concluidas.length, color: 'hsl(142, 71%, 45%)' },
           { name: 'Em Andamento', value: emAndamento.length, color: 'hsl(224, 76%, 48%)' },

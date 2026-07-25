@@ -1,10 +1,13 @@
+// Os valores são os SLUGS gravados em analyses.tipo_documento — mesmo formato
+// usado pelo banco, pelo n8n e pelos relatórios (getDocumentTypeById). As chaves
+// (nomes de exibição) continuam sendo usadas para indexar DOCUMENT_DESCRIPTIONS.
 export const DOCUMENT_TYPES = {
-  DFD: 'DFD',
-  'DFD do PCA': 'DFD do PCA',
-  ETP: 'ETP',
-  'Nota Técnica': 'Nota Técnica',
-  'Análise de Risco': 'Análise de Risco',
-  'Termo de Referência': 'Termo de Referência',
+  DFD: 'dfd',
+  'DFD do PCA': 'dfd-pca',
+  ETP: 'etp',
+  'Nota Técnica': 'nota-tecnica',
+  'Análise de Risco': 'analise-risco',
+  'Termo de Referência': 'termo-referencia',
 } as const;
 
 export type DocumentType = typeof DOCUMENT_TYPES[keyof typeof DOCUMENT_TYPES];
