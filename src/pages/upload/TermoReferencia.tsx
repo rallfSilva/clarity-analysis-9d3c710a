@@ -9,7 +9,7 @@ export default function TermoReferencia() {
           Nova Análise - Termo de Referência
         </h1>
         <p className="text-muted-foreground">
-          Envie seu Termo de Referência para análise de conformidade
+          Envie seu Termo de Referência para análise de conformidades
         </p>
       </div>
 

@@ -198,7 +198,7 @@ const Index = () => {
               Excelência técnica
             </p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-              Uma nova geração de análise de conformidade
+              Uma nova geração de análise de conformidades
             </h2>
             <p className="mt-4 text-muted-foreground">
               O SIAC utiliza modelos avançados para validar cada artefato licitatório do fluxo de contratações públicas

@@ -9,7 +9,7 @@ export default function DFD() {
           Nova Análise - DFD
         </h1>
         <p className="text-muted-foreground">
-          Envie seu Documento de Formalização de Demanda para análise de conformidade
+          Envie seu Documento de Formalização de Demanda para análise de conformidades
         </p>
       </div>
 

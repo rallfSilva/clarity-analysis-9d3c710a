@@ -207,7 +207,7 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
           <Card className="rounded-xl border-border/60 overflow-hidden">
             <div className="text-center py-4 px-5 bg-muted/40 border-b border-border/60">
               <h4 className="text-lg font-bold text-foreground">
-                Relatório de Análise de Conformidade — {analysis.tipo_documento}
+                Relatório de Análise de Conformidades — {analysis.tipo_documento}
               </h4>
             </div>
             {(rd?.processo || rd?.secretaria || rd?.objeto || rd?.base_normativa || rd?.responsaveis) && (

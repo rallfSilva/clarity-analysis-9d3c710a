@@ -9,7 +9,7 @@ export default function ETP() {
           Nova Análise - ETP
         </h1>
         <p className="text-muted-foreground">
-          Envie seu Estudo Técnico Preliminar para análise de conformidade
+          Envie seu Estudo Técnico Preliminar para análise de conformidades
         </p>
       </div>
 

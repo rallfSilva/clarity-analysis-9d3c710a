@@ -9,7 +9,7 @@ export default function AnaliseRisco() {
           Nova Análise - Análise de Risco
         </h1>
         <p className="text-muted-foreground">
-          Envie sua Análise de Risco da Contratação para análise de conformidade
+          Envie sua Análise de Risco da Contratação para análise de conformidades
         </p>
       </div>
 

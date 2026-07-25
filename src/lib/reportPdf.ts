@@ -81,7 +81,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   doc.text('Sistema Integrado de Análise de Conformidades', margin, 17);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('Relatório de Análise de Conformidade', pageW - margin, 12, { align: 'right' });
+  doc.text('Relatório de Análise de Conformidades', pageW - margin, 12, { align: 'right' });
 
   let y = 36;
 
@@ -89,7 +89,7 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   doc.setTextColor(...C.text);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
-  doc.text('Análise de Conformidade', margin, y);
+  doc.text('Análise de Conformidades', margin, y);
   y += 8;
 
   // ============ Metadata card (two columns) ============

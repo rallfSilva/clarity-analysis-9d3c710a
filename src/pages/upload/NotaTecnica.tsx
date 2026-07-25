@@ -9,7 +9,7 @@ export default function NotaTecnica() {
           Nova Análise - Nota Técnica
         </h1>
         <p className="text-muted-foreground">
-          Envie sua Nota Técnica de Cotação de Preços para análise de conformidade
+          Envie sua Nota Técnica de Cotação de Preços para análise de conformidades
         </p>
       </div>
 
