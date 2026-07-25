@@ -79,9 +79,9 @@ const Index = () => {
       {/* Nav */}
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-28">
-          <div className="flex flex-col items-center">
-            <img src={siacLogo} alt="SIAC" className="h-20 w-auto object-contain" />
-            <span className="text-[11px] font-semibold text-muted-foreground leading-tight">
+          <div className="flex items-center gap-4">
+            <img src={siacLogo} alt="SIAC" className="h-24 w-auto object-contain" />
+            <span className="text-[11px] font-semibold text-muted-foreground leading-tight max-w-[170px] sm:max-w-none sm:whitespace-nowrap">
               Sistema Integrado de Análise de Conformidades
             </span>
           </div>
