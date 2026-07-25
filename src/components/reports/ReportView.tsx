@@ -15,6 +15,26 @@ import {
 import { exportReportPDF } from '@/lib/reportPdf';
 import { getDocumentTypeById } from '@/lib/documentTypes';
 
+const SUPABASE_STORAGE_ORIGIN = (() => {
+  try {
+    return new URL(import.meta.env.VITE_SUPABASE_URL).origin;
+  } catch {
+    return undefined;
+  }
+})();
+
+function toSafeDocumentUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return undefined;
+    if (SUPABASE_STORAGE_ORIGIN && parsed.origin !== SUPABASE_STORAGE_ORIGIN) return undefined;
+    return parsed.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 interface Analysis {
   id: string;
   processo: string;
@@ -74,7 +94,7 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
   const analystShortId = analysis.user_id.slice(0, 8);
   const tipoLabel = getDocumentTypeById(analysis.tipo_documento)?.name ?? analysis.tipo_documento;
   const tipoShortLabel = getDocumentTypeById(analysis.tipo_documento)?.shortName ?? analysis.tipo_documento;
-  const documentoUrl = /^https?:\/\//i.test(analysis.arquivo_url || '') ? analysis.arquivo_url : undefined;
+  const documentoUrl = toSafeDocumentUrl(analysis.arquivo_url);
 
   const total = report.items.length;
 
