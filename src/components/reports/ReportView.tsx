@@ -26,6 +26,7 @@ interface Analysis {
   relatorio_html: string | null;
   resultado_json?: any;
   user_id: string;
+  arquivo_url?: string;
 }
 
 interface Analyst {
@@ -73,6 +74,7 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
   const analystShortId = analysis.user_id.slice(0, 8);
   const tipoLabel = getDocumentTypeById(analysis.tipo_documento)?.name ?? analysis.tipo_documento;
   const tipoShortLabel = getDocumentTypeById(analysis.tipo_documento)?.shortName ?? analysis.tipo_documento;
+  const documentoUrl = /^https?:\/\//i.test(analysis.arquivo_url || '') ? analysis.arquivo_url : undefined;
 
   const total = report.items.length;
 
@@ -202,6 +204,20 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
               </div>
             </div>
           </Card>
+
+          {documentoUrl && (
+            <div className="mt-4 flex items-center gap-2 text-sm print:hidden">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <a
+                href={documentoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary hover:underline"
+              >
+                Ver documento original
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Relatório Detalhado */}

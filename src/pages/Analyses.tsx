@@ -51,6 +51,7 @@ interface Analysis {
   relatorio_html: string | null;
   resultado_json: any;
   user_id: string;
+  arquivo_url?: string;
 }
 
 
