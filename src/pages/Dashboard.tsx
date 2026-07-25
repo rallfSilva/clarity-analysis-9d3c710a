@@ -35,7 +35,7 @@ const Dashboard = () => {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Olá, {name} 👋</h1>
         <p className="text-muted-foreground mt-1">
-          Visão geral das análises de conformidade no SIAC.
+          Visão geral das análises de conformidades no SIAC.
         </p>
       </div>
 
