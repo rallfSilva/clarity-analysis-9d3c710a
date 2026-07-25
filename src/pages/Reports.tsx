@@ -1,5 +1,4 @@
 import { useSearchParams } from 'react-router-dom';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OverviewReport } from '@/components/reports/OverviewReport';
 import { ConsolidatedReport } from '@/components/reports/ConsolidatedReport';
@@ -22,7 +21,7 @@ export default function Reports() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
         <p className="text-muted-foreground mt-1">
@@ -46,6 +45,6 @@ export default function Reports() {
           <SecretariaReport />
         </TabsContent>
       </Tabs>
-    </DashboardLayout>
+    </>
   );
 }
