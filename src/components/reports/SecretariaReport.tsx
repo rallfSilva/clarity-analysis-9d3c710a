@@ -77,18 +77,16 @@ export function SecretariaReport() {
     queryKey: ['reports', 'secretaria', selected, user?.id, isAdmin],
     enabled: !!user && !!selected,
     queryFn: async (): Promise<Analysis[]> => {
-      // Mesmo cálculo de janela do Dashboard: meia-noite de hoje menos 29 dias.
-      const since = new Date();
-      since.setHours(0, 0, 0, 0);
-      since.setDate(since.getDate() - 29);
-      let q = supabase
-        .from('analyses')
-        .select('*')
-        .gte('created_at', since.toISOString());
+      // Todas as análises da secretaria (all-time), igual ao relatório "Por
+      // Processo". A contagem do seletor também é all-time — filtrar por uma
+      // janela de 30 dias aqui deixava o relatório vazio para secretarias sem
+      // atividade recente (o seletor mostrava "SETRABES (4)" e o detalhe, 0).
+      let q = supabase.from('analyses').select('*');
       if (!isAdmin && user) q = q.eq('user_id', user.id);
       const { data, error } = await q;
       if (error) throw error;
-      // Bucket exatamente igual ao Dashboard: `a.secretaria || 'Não informado'`.
+      // Mesmo bucket do seletor: `a.secretaria || 'Não informado'` (cobre o
+      // caso de secretaria nula).
       return ((data || []) as Analysis[]).filter(
         (a) => (a.secretaria || 'Não informado') === selected,
       );

@@ -65,6 +65,15 @@ export function SecretariaSummary({
     const total = analyses.length;
     const successRate = total > 0 ? (success.length / total) * 100 : 0;
 
+    // "Últimos 30 dias" é um subconjunto recente calculado aqui, já que
+    // `analyses` agora traz a secretaria inteira (all-time). Mesma janela do
+    // relatório/Dashboard: meia-noite de hoje menos 29 dias.
+    const since30 = new Date();
+    since30.setHours(0, 0, 0, 0);
+    since30.setDate(since30.getDate() - 29);
+    const sinceIso = since30.toISOString();
+    const recentCount = analyses.filter((a) => a.created_at >= sinceIso).length;
+
     const avgConformidade =
       successWithScore.length > 0
         ? successWithScore.reduce((s, a) => s + (a.conformidade_percentual || 0), 0) /
@@ -136,6 +145,7 @@ export function SecretariaSummary({
 
     return {
       total,
+      recentCount,
       success: success.length,
       successRate,
       avgConformidade,
@@ -164,7 +174,7 @@ export function SecretariaSummary({
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-6">
           <div>
             <div className="text-xs text-muted-foreground">Últimos 30 dias</div>
-            <div className="text-2xl font-bold">{derived.total}</div>
+            <div className="text-2xl font-bold">{derived.recentCount}</div>
           </div>
           <div>
             <div className="text-xs text-muted-foreground">Total de Análises</div>
