@@ -39,7 +39,7 @@ export function SecretariaSelector({ items, value, onChange, loading }: Secretar
           role="combobox"
           aria-expanded={open}
           aria-label="Selecionar secretaria"
-          className="w-full md:w-[420px] justify-between"
+          className="w-full justify-between"
           disabled={loading}
         >
           <span className="truncate">{label}</span>

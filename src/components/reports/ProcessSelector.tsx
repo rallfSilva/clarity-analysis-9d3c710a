@@ -27,7 +27,7 @@ export function ProcessSelector({ items, value, onChange, loading }: ProcessSele
           role="combobox"
           aria-expanded={open}
           aria-label="Selecionar processo"
-          className="w-full md:w-[420px] justify-between"
+          className="w-full justify-between"
           disabled={loading}
         >
           <span className="truncate">
