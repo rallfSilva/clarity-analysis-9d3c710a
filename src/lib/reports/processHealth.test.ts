@@ -58,9 +58,10 @@ describe('computeProcessHealth', () => {
     expect(computeProcessHealth(g).level).toBe('yellow');
   });
 
-  it('returns green when all 5 types have success and avg >= 85', () => {
+  it('returns green when all 6 types have success and avg >= 85', () => {
     const g = makeGroup([
       makeAnalysis({ tipo_documento: 'dfd', conformidade_percentual: 90 }),
+      makeAnalysis({ tipo_documento: 'dfd-pca', conformidade_percentual: 90 }),
       makeAnalysis({ tipo_documento: 'etp', conformidade_percentual: 85 }),
       makeAnalysis({ tipo_documento: 'nota-tecnica', conformidade_percentual: 95 }),
       makeAnalysis({ tipo_documento: 'analise-risco', conformidade_percentual: 88 }),
@@ -72,6 +73,7 @@ describe('computeProcessHealth', () => {
   it('returns yellow when complete but avg < 85', () => {
     const g = makeGroup([
       makeAnalysis({ tipo_documento: 'dfd', conformidade_percentual: 80 }),
+      makeAnalysis({ tipo_documento: 'dfd-pca', conformidade_percentual: 80 }),
       makeAnalysis({ tipo_documento: 'etp', conformidade_percentual: 80 }),
       makeAnalysis({ tipo_documento: 'nota-tecnica', conformidade_percentual: 80 }),
       makeAnalysis({ tipo_documento: 'analise-risco', conformidade_percentual: 80 }),
@@ -80,7 +82,7 @@ describe('computeProcessHealth', () => {
     expect(computeProcessHealth(g).level).toBe('yellow');
   });
 
-  it('returns yellow when avg >= 85 but not all 5 types completed', () => {
+  it('returns yellow when avg >= 85 but not all 6 types completed', () => {
     const g = makeGroup([
       makeAnalysis({ tipo_documento: 'dfd', conformidade_percentual: 95 }),
       makeAnalysis({ tipo_documento: 'etp', conformidade_percentual: 90 }),
@@ -91,6 +93,7 @@ describe('computeProcessHealth', () => {
   it('returns criteria with met flags for green case', () => {
     const g = makeGroup([
       makeAnalysis({ tipo_documento: 'dfd', conformidade_percentual: 90 }),
+      makeAnalysis({ tipo_documento: 'dfd-pca', conformidade_percentual: 90 }),
       makeAnalysis({ tipo_documento: 'etp', conformidade_percentual: 90 }),
       makeAnalysis({ tipo_documento: 'nota-tecnica', conformidade_percentual: 90 }),
       makeAnalysis({ tipo_documento: 'analise-risco', conformidade_percentual: 90 }),
@@ -99,7 +102,7 @@ describe('computeProcessHealth', () => {
     const h = computeProcessHealth(g);
     expect(h.criteria.every((c) => c.met)).toBe(true);
     expect(h.criteria.find((c) => c.label.includes('Conformidade'))?.value).toBe('90.0%');
-    expect(h.criteria.find((c) => c.label.includes('tipos analisados'))?.value).toBe('5/5');
+    expect(h.criteria.find((c) => c.label.includes('tipos analisados'))?.value).toBe('6/6');
     expect(h.criteria.find((c) => c.label.includes('erro'))?.value).toBe('nenhum erro');
   });
 
