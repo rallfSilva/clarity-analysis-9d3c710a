@@ -100,13 +100,21 @@ export default function AllAnalyses() {
       setLoading(false);
     })();
 
+    // Realtime é best-effort (o self-hosted pode estar fora do ar); o
+    // polling abaixo garante que a lista avance de qualquer forma.
     const channel = supabase
       .channel('all-analyses-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'analyses' }, () => {
         fetchAll();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    const interval = setInterval(() => fetchAll(), 5000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   const filtered = useMemo(() => {

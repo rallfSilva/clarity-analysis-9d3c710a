@@ -161,8 +161,9 @@ export default function Analyses() {
 
   useEffect(() => {
     fetchAnalyses();
-    
-    // Setup realtime subscription
+
+    // Setup realtime subscription (best-effort — o Realtime self-hosted
+    // pode estar fora do ar, por isso o polling abaixo cobre a atualização).
     const channel = supabase
       .channel('analyses-changes')
       .on(
@@ -174,13 +175,18 @@ export default function Analyses() {
           filter: isAdmin ? undefined : `user_id=eq.${user?.id}`,
         },
         () => {
-          fetchAnalyses();
+          fetchAnalyses(true);
         }
       )
       .subscribe();
 
+    // Fallback de polling: garante que status pending/processing avancem na
+    // tela mesmo sem o Realtime funcionando.
+    const interval = setInterval(() => fetchAnalyses(true), 5000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [user, isAdmin]);
 
@@ -192,9 +198,9 @@ export default function Analyses() {
     setFilteredAnalyses(filtered);
   }, [searchTerm, analyses]);
 
-  const fetchAnalyses = async () => {
+  const fetchAnalyses = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       let query = supabase
         .from('analyses')
         .select('*')
