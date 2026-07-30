@@ -10,10 +10,10 @@ const {
   mockInsertAnalysisSingle,
   mockInsertAnalyses,
   mockInsertAuditLogs,
-  mockInvoke,
   mockChannel,
   mockToast,
   mockNavigate,
+  mockFetch,
 } = vi.hoisted(() => {
   const mockUpload = vi.fn(() => Promise.resolve({ error: null }));
   const mockGetPublicUrl = vi.fn(() => ({ data: { publicUrl: 'https://example.com/doc.pdf' } }));
@@ -24,24 +24,26 @@ const {
     select: () => ({ single: mockInsertAnalysisSingle }),
   }));
   const mockInsertAuditLogs = vi.fn(() => Promise.resolve({ error: null }));
-  const mockInvoke = vi.fn();
   const mockChannel: any = {};
   mockChannel.on = vi.fn(() => mockChannel);
   mockChannel.subscribe = vi.fn(() => mockChannel);
   const mockToast = vi.fn();
   const mockNavigate = vi.fn();
+  const mockFetch = vi.fn();
   return {
     mockUpload,
     mockGetPublicUrl,
     mockInsertAnalysisSingle,
     mockInsertAnalyses,
     mockInsertAuditLogs,
-    mockInvoke,
     mockChannel,
     mockToast,
     mockNavigate,
+    mockFetch,
   };
 });
+
+vi.stubGlobal('fetch', mockFetch);
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'u1' } }),
@@ -92,7 +94,6 @@ vi.mock('@/integrations/supabase/client', () => ({
       if (table === 'audit_logs') return { insert: mockInsertAuditLogs };
       throw new Error(`unexpected table ${table}`);
     }),
-    functions: { invoke: mockInvoke },
     channel: vi.fn(() => mockChannel),
     removeChannel: vi.fn(),
   },
@@ -135,21 +136,26 @@ beforeEach(() => {
   mockUpload.mockResolvedValue({ error: null });
   mockInsertAnalysisSingle.mockResolvedValue({ data: { id: 'analysis-1' }, error: null });
   mockInsertAuditLogs.mockResolvedValue({ error: null });
+  mockFetch.mockResolvedValue({ ok: true, status: 200 });
 });
 
 describe('DocumentUploadSection — conclusão do envio', () => {
-  it('navega para /analyses quando a análise é concluída com sucesso', async () => {
-    mockInvoke.mockResolvedValue({ error: null });
+  it('navega para /analyses quando o webhook do n8n aceita o documento', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 200 });
     const { container } = renderComponent();
 
     await fillAndSubmit(container);
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/analyses'));
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://flows.siac.marcelomatos.dev/webhook/teste',
+      expect.objectContaining({ method: 'POST' }),
+    );
     expect(mockInsertAuditLogs).toHaveBeenCalled();
   });
 
-  it('mostra erro e não navega quando a função de análise falha', async () => {
-    mockInvoke.mockResolvedValue({ error: { message: 'falhou' } });
+  it('mostra erro e não navega quando o webhook do n8n falha', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 500 });
     const { container } = renderComponent();
 
     await fillAndSubmit(container);

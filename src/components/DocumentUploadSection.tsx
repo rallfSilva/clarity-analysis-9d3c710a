@@ -130,38 +130,36 @@ export function DocumentUploadSection({
       if (insertError) throw insertError;
       setCurrentAnalysisId(analysis.id);
 
-      // Step 3: notify processor (webhook n8n)
+      // Step 3: notify processor (webhook n8n) — o n8n é quem executa a
+      // análise de fato (IA + escrita em `analyses`), de forma assíncrona.
       setStep(2);
-      const webhookUrl = 'http://localhost:5678/webhook/teste';
+      const webhookUrl = 'https://flows.siac.marcelomatos.dev/webhook/teste';
+      const webhookPayload = {
+        analysis_id: analysis.id,
+        user_id: user.id,
+        processo,
+        secretaria,
+        tipo_documento: tipo,
+        arquivo_url: urlData.publicUrl,
+        file_name: file.name,
+        file_size: file.size,
+        created_at: new Date().toISOString(),
+      };
+
+      let webhookOk = false;
       try {
-        const webhookPayload = {
-          analysis_id: analysis.id,
-          user_id: user.id,
-          processo,
-          secretaria,
-          tipo_documento: tipo,
-          arquivo_url: urlData.publicUrl,
-          file_name: file.name,
-          file_size: file.size,
-          created_at: new Date().toISOString(),
-        };
         const webhookResponse = await fetch(webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(webhookPayload),
         });
-        if (!webhookResponse.ok) {
-          console.warn('Webhook n8n retornou erro:', webhookResponse.status);
+        webhookOk = webhookResponse.ok;
+        if (!webhookOk) {
+          console.error('Webhook n8n retornou erro:', webhookResponse.status);
         }
       } catch (webhookError) {
-        console.warn('Erro ao chamar webhook n8n:', webhookError);
+        console.error('Erro ao chamar webhook n8n:', webhookError);
       }
-
-      // Step 4: invoke edge function (AI)
-      setStep(3);
-      const { error: functionError } = await supabase.functions.invoke('analyze-document', {
-        body: { analysis_id: analysis.id },
-      });
 
       await supabase.from('audit_logs').insert({
         user_id: user.id,
@@ -174,20 +172,19 @@ export function DocumentUploadSection({
         },
       });
 
-      if (functionError) {
-        console.error('Error calling analyze function:', functionError);
+      if (!webhookOk) {
         setAnalysisError(true);
         toast({
           title: 'Erro no processamento',
-          description: 'Não foi possível concluir a análise do documento.',
+          description: 'Não foi possível enviar o documento para análise.',
           variant: 'destructive',
         });
         return;
       }
 
       toast({
-        title: 'Análise concluída!',
-        description: 'Seu documento foi processado com sucesso.',
+        title: 'Análise enviada!',
+        description: 'Seu documento está sendo processado.',
       });
 
       navigate('/analyses');
