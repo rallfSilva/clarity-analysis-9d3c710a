@@ -163,10 +163,6 @@ export function DocumentUploadSection({
         body: { analysis_id: analysis.id },
       });
 
-      if (functionError) {
-        console.error('Error calling analyze function:', functionError);
-      }
-
       await supabase.from('audit_logs').insert({
         user_id: user.id,
         action: 'analysis_created',
@@ -178,15 +174,23 @@ export function DocumentUploadSection({
         },
       });
 
+      if (functionError) {
+        console.error('Error calling analyze function:', functionError);
+        setAnalysisError(true);
+        toast({
+          title: 'Erro no processamento',
+          description: 'Não foi possível concluir a análise do documento.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       toast({
-        title: 'Análise iniciada!',
-        description: 'Seu documento está sendo processado.',
+        title: 'Análise concluída!',
+        description: 'Seu documento foi processado com sucesso.',
       });
 
-      // Reset form fields but keep progress panel visible
-      setFile(null);
-      setProcesso('');
-      setSecretaria('');
+      navigate('/analyses');
     } catch (error: any) {
       console.error('Upload error:', error);
       setAnalysisError(true);
