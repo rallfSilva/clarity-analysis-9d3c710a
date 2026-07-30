@@ -160,3 +160,30 @@ describe('DocumentUploadSection — conclusão do envio', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
+
+describe('DocumentUploadSection — formato de arquivo aceito', () => {
+  it('informa que apenas PDF é aceito no momento', () => {
+    renderComponent();
+
+    expect(screen.getByText('Apenas PDF (máx. 50MB)')).toBeInTheDocument();
+    expect(screen.queryByText(/DOCX/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/XLSX/i)).not.toBeInTheDocument();
+  });
+
+  it('rejeita um arquivo .docx com toast de formato não suportado', async () => {
+    const { container } = renderComponent();
+
+    const file = new File(['conteudo'], 'documento.docx', {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() =>
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Formato não suportado', variant: 'destructive' }),
+      ),
+    );
+    expect(screen.queryByText('documento.docx')).not.toBeInTheDocument();
+  });
+});

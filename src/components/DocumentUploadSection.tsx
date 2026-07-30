@@ -66,8 +66,6 @@ export function DocumentUploadSection({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'application/pdf': ['.pdf'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
     },
     maxSize: 52428800, // 50MB
     multiple: false,
@@ -75,6 +73,13 @@ export function DocumentUploadSection({
       if (acceptedFiles.length > 0) {
         setFile(acceptedFiles[0]);
       }
+    },
+    onDropRejected: () => {
+      toast({
+        title: 'Formato não suportado',
+        description: 'No momento, apenas arquivos PDF são aceitos.',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -265,7 +270,7 @@ export function DocumentUploadSection({
                     {isDragActive ? 'Solte o arquivo aqui' : 'Arraste um arquivo ou clique para selecionar'}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    PDF, DOCX ou XLSX (máx. 50MB)
+                    Apenas PDF (máx. 50MB)
                   </p>
                 </div>
               </div>
