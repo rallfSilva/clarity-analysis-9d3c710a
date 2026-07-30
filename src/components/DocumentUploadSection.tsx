@@ -174,11 +174,6 @@ export function DocumentUploadSection({
 
       if (!webhookOk) {
         setAnalysisError(true);
-        toast({
-          title: 'Erro no processamento',
-          description: 'Não foi possível enviar o documento para análise.',
-          variant: 'destructive',
-        });
         return;
       }
 
