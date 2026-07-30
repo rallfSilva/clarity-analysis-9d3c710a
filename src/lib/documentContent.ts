@@ -90,9 +90,7 @@ export const DOCUMENT_DESCRIPTIONS = {
 export const FUNDAMENTACAO_JURIDICA = {
   titulo: "Fundamentação Jurídica",
   items: [
-    "Lei n° 14.133, 1° de abril de 2021, Lei de Licitações e Contratos Administrativos.",
-    "Decreto nº 39.050-E de 18 de agosto de 2025 - Nas contratações no âmbito da Administração Pública Estadual Direta, Autárquica e Fundacional do Estado de Roraima.",
-    "INSTRUÇÃO NORMATIVA SEGES/ME Nº 81, DE 25 DE NOVEMBRO DE 2022, INSTRUÇÃO NORMATIVA SEGES Nº 58, DE 8 DE AGOSTO DE 2022 e INSTRUÇÃO NORMATIVA SEGES/ME Nº 65, DE 7 DE JULHO DE 2021"
+    "Lei Federal nº 14.133, de 1º de abril de 2021 - Lei de Licitações e Contratos Administrativos e normas estaduais aplicáveis as contratações públicas.",
   ],
   srp: {
     titulo: "Fundamentação da adoção do SRP",
