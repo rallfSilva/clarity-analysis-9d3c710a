@@ -130,37 +130,6 @@ export function DocumentUploadSection({
       if (insertError) throw insertError;
       setCurrentAnalysisId(analysis.id);
 
-      // Step 3: notify processor (webhook n8n) — o n8n é quem executa a
-      // análise de fato (IA + escrita em `analyses`), de forma assíncrona.
-      setStep(2);
-      const webhookUrl = 'https://flows.siac.marcelomatos.dev/webhook/teste';
-      const webhookPayload = {
-        analysis_id: analysis.id,
-        user_id: user.id,
-        processo,
-        secretaria,
-        tipo_documento: tipo,
-        arquivo_url: urlData.publicUrl,
-        file_name: file.name,
-        file_size: file.size,
-        created_at: new Date().toISOString(),
-      };
-
-      let webhookOk = false;
-      try {
-        const webhookResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(webhookPayload),
-        });
-        webhookOk = webhookResponse.ok;
-        if (!webhookOk) {
-          console.error('Webhook n8n retornou erro:', webhookResponse.status);
-        }
-      } catch (webhookError) {
-        console.error('Erro ao chamar webhook n8n:', webhookError);
-      }
-
       await supabase.from('audit_logs').insert({
         user_id: user.id,
         action: 'analysis_created',
@@ -171,11 +140,6 @@ export function DocumentUploadSection({
           tipo_documento: tipo,
         },
       });
-
-      if (!webhookOk) {
-        setAnalysisError(true);
-        return;
-      }
 
       toast({
         title: 'Análise enviada!',

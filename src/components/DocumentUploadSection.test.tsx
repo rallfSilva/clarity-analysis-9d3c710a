@@ -13,7 +13,6 @@ const {
   mockChannel,
   mockToast,
   mockNavigate,
-  mockFetch,
 } = vi.hoisted(() => {
   const mockUpload = vi.fn(() => Promise.resolve({ error: null }));
   const mockGetPublicUrl = vi.fn(() => ({ data: { publicUrl: 'https://example.com/doc.pdf' } }));
@@ -29,7 +28,6 @@ const {
   mockChannel.subscribe = vi.fn(() => mockChannel);
   const mockToast = vi.fn();
   const mockNavigate = vi.fn();
-  const mockFetch = vi.fn();
   return {
     mockUpload,
     mockGetPublicUrl,
@@ -39,11 +37,8 @@ const {
     mockChannel,
     mockToast,
     mockNavigate,
-    mockFetch,
   };
 });
-
-vi.stubGlobal('fetch', mockFetch);
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'u1' } }),
@@ -136,31 +131,32 @@ beforeEach(() => {
   mockUpload.mockResolvedValue({ error: null });
   mockInsertAnalysisSingle.mockResolvedValue({ data: { id: 'analysis-1' }, error: null });
   mockInsertAuditLogs.mockResolvedValue({ error: null });
-  mockFetch.mockResolvedValue({ ok: true, status: 200 });
 });
 
 describe('DocumentUploadSection — conclusão do envio', () => {
-  it('navega para /analyses quando o webhook do n8n aceita o documento', async () => {
-    mockFetch.mockResolvedValue({ ok: true, status: 200 });
+  it('registra a análise e navega para /analyses ao concluir o envio', async () => {
     const { container } = renderComponent();
 
     await fillAndSubmit(container);
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/analyses'));
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://flows.siac.marcelomatos.dev/webhook/teste',
-      expect.objectContaining({ method: 'POST' }),
+    expect(mockInsertAnalyses).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'pending' }),
     );
     expect(mockInsertAuditLogs).toHaveBeenCalled();
   });
 
-  it('mostra erro e não navega quando o webhook do n8n falha', async () => {
-    mockFetch.mockResolvedValue({ ok: false, status: 500 });
+  it('mostra toast de erro e não navega quando o upload do arquivo falha', async () => {
+    mockUpload.mockResolvedValue({ error: new Error('falha no storage') });
     const { container } = renderComponent();
 
     await fillAndSubmit(container);
 
-    expect(await screen.findByText(/Erro no processamento/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Erro no upload', variant: 'destructive' }),
+      ),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
