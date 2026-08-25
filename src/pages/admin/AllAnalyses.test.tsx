@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AllAnalyses from './AllAnalyses';
 
 const { mockChannel, mockFrom } = vi.hoisted(() => {
@@ -12,6 +12,7 @@ const { mockChannel, mockFrom } = vi.hoisted(() => {
 
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: vi.fn() }),
+  toast: vi.fn(),
 }));
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -22,14 +23,14 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-function queryChain() {
+function queryChain(data: any[] = []) {
   const chain: any = {
     select: vi.fn(() => chain),
     order: vi.fn(() => chain),
     in: vi.fn(() => chain),
   };
   chain.then = (resolve: any, reject: any) =>
-    Promise.resolve({ data: [], error: null }).then(resolve, reject);
+    Promise.resolve({ data, error: null }).then(resolve, reject);
   return chain;
 }
 mockFrom.mockImplementation(() => queryChain());
@@ -63,5 +64,37 @@ describe('AllAnalyses — atualização sem Realtime', () => {
 
     unmount();
     vi.unstubAllGlobals();
+  });
+});
+
+describe('AllAnalyses — impressão do relatório', () => {
+  it('marca o DialogContent do relatório com data-print-area, para o CSS de impressão isolar só ele', async () => {
+    const analysis = {
+      id: 'a1',
+      processo: 'SIAC-2026-0001',
+      tipo_documento: 'dfd',
+      status: 'success',
+      conformidade_percentual: 80,
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      relatorio_html: '<p>Relatório</p>',
+      resultado_json: null,
+      user_id: 'user-123456789',
+    };
+
+    mockFrom.mockImplementation((table: string) =>
+      table === 'profiles'
+        ? queryChain([{ id: 'user-123456789', name: 'Analista', email: 'analista@example.com' }])
+        : queryChain([analysis]),
+    );
+
+    render(<AllAnalyses />);
+
+    const viewButton = await screen.findByTitle('Ver relatório');
+    fireEvent.click(viewButton);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-print-area="analysis-details"]')).not.toBeNull();
+    });
   });
 });

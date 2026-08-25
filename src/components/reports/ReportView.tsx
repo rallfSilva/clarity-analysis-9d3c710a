@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import DOMPurify from 'dompurify';
 import {
   FileText, Calendar, Clock, User, IdCard, Printer, Download, FileDown, Copy, ClipboardList,
 } from 'lucide-react';
@@ -366,7 +367,19 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
             {/* relatorio_html vem da IA e pode trazer <style> embutido — renderizar
                 direto na página com dangerouslySetInnerHTML vaza esse CSS para o
                 site inteiro. O iframe isola o documento e evita o vazamento. */}
-            <IsolatedHtmlReport html={analysis.relatorio_html} />
+            <div className="no-print">
+              <IsolatedHtmlReport html={analysis.relatorio_html} />
+            </div>
+            {/* O navegador não pinta o conteúdo do iframe ao imprimir, o que
+                deixava o relatório em branco no papel. Só na impressão trocamos
+                o iframe por esta versão inline (sanitizada, já que o HTML vem
+                da IA e aqui não há o isolamento do sandbox). */}
+            <div
+              className="report-content print-only"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(analysis.relatorio_html),
+              }}
+            />
           </Card>
         )}
       </div>

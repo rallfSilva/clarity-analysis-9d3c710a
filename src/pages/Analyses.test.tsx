@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Analyses from './Analyses';
 
 const { mockChannel, mockFrom, mockUser } = vi.hoisted(() => {
@@ -24,6 +24,7 @@ vi.mock('@/hooks/useUserRole', () => ({
 
 vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: vi.fn() }),
+  toast: vi.fn(),
 }));
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -34,14 +35,15 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-function queryChain() {
+function queryChain(data: any[] = [], singleData: any = null) {
   const chain: any = {
     select: vi.fn(() => chain),
     order: vi.fn(() => chain),
     eq: vi.fn(() => chain),
+    maybeSingle: vi.fn(() => Promise.resolve({ data: singleData, error: null })),
   };
   chain.then = (resolve: any, reject: any) =>
-    Promise.resolve({ data: [], error: null }).then(resolve, reject);
+    Promise.resolve({ data, error: null }).then(resolve, reject);
   return chain;
 }
 mockFrom.mockImplementation(() => queryChain());
@@ -83,5 +85,39 @@ describe('Analyses — atualização sem Realtime', () => {
 
     unmount();
     vi.unstubAllGlobals();
+  });
+});
+
+describe('Analyses — impressão do relatório', () => {
+  it('marca o DialogContent do relatório com data-print-area, para o CSS de impressão isolar só ele', async () => {
+    const analysis = {
+      id: 'a1',
+      processo: 'SIAC-2026-0001',
+      tipo_documento: 'dfd',
+      status: 'success',
+      conformidade_percentual: 80,
+      created_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      relatorio_html: '<p>Relatório</p>',
+      resultado_json: null,
+      user_id: 'user-123456789',
+    };
+
+    mockFrom.mockImplementation((table: string) =>
+      table === 'profiles'
+        ? queryChain([], { name: 'Analista', email: 'analista@example.com' })
+        : queryChain([analysis]),
+    );
+
+    render(<Analyses />);
+
+    const viewButton = await screen.findByRole('button', {
+      name: /Ver relatório da análise SIAC-2026-0001/i,
+    });
+    fireEvent.click(viewButton);
+
+    await waitFor(() => {
+      expect(document.querySelector('[data-print-area="analysis-details"]')).not.toBeNull();
+    });
   });
 });

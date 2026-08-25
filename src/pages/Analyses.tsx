@@ -452,7 +452,7 @@ export default function Analyses() {
 
       {/* Report Dialog */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-6">
+        <DialogContent data-print-area="analysis-details" className="max-w-6xl max-h-[92vh] overflow-y-auto p-6">
           <DialogHeader className="sr-only">
             <DialogTitle>Relatório de Análise</DialogTitle>
           </DialogHeader>

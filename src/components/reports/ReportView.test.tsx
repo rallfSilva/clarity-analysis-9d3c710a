@@ -35,4 +35,25 @@ describe('ReportView — fallback de relatorio_html legado', () => {
     expect(iframe).not.toBeNull();
     expect((iframe as HTMLIFrameElement).srcdoc).toContain('Relatório antigo');
   });
+
+  it('mantém uma versão sanitizada (print-only) do relatório para a impressão, já que o iframe não imprime', () => {
+    const analysis = {
+      ...baseAnalysis,
+      resultado_json: null,
+      relatorio_html: '<style>body { background: red; }</style><p>Relatório antigo</p><script>alert(1)</script>',
+    };
+
+    const { container } = render(<ReportView analysis={analysis} analyst={null} />);
+
+    // O iframe (que não aparece na impressão) fica escondido em .no-print.
+    expect(container.querySelector('.no-print iframe')).not.toBeNull();
+
+    // A contrapartida .print-only traz o mesmo conteúdo, sanitizado (sem
+    // <style>/<script>), pronta pra substituir o iframe só no papel.
+    const printOnly = container.querySelector('.print-only.report-content');
+    expect(printOnly).not.toBeNull();
+    expect(printOnly?.textContent).toContain('Relatório antigo');
+    expect(printOnly?.querySelector('script')).toBeNull();
+    expect(printOnly?.querySelector('style')).toBeNull();
+  });
 });
