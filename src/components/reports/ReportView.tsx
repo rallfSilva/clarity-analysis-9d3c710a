@@ -14,6 +14,7 @@ import {
 } from '@/lib/reportUtils';
 import { exportReportPDF } from '@/lib/reportPdf';
 import { getDocumentTypeById } from '@/lib/documentTypes';
+import { IsolatedHtmlReport } from './IsolatedHtmlReport';
 
 const SUPABASE_STORAGE_ORIGIN = (() => {
   try {
@@ -360,9 +361,12 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
 
         {/* Legacy fallback */}
         {report.items.length === 0 && analysis.relatorio_html && (
-          <Card className="p-6 rounded-xl border-border/60">
+          <Card className="p-6 rounded-xl border-border/60 overflow-hidden">
             <h3 className="text-lg font-semibold text-foreground mb-3">Análise Detalhada</h3>
-            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: analysis.relatorio_html }} />
+            {/* relatorio_html vem da IA e pode trazer <style> embutido — renderizar
+                direto na página com dangerouslySetInnerHTML vaza esse CSS para o
+                site inteiro. O iframe isola o documento e evita o vazamento. */}
+            <IsolatedHtmlReport html={analysis.relatorio_html} />
           </Card>
         )}
       </div>
