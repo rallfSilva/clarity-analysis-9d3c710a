@@ -3,6 +3,7 @@ import { ptBR } from 'date-fns/locale';
 import type { NormalizedReport, NormalizedItem, SituacaoNormalizada } from './reportUtils';
 import { processingDurationLabel } from './reportUtils';
 import { getDocumentTypeById } from './documentTypes';
+import { htmlToReadableText } from './reports/consolidatedPdf';
 
 interface Analysis {
   id: string;
@@ -149,33 +150,55 @@ export async function exportReportPDF(analysis: Analysis, analyst: Analyst | nul
   y += gaugeH + 6;
 
   // ============ Indicator cards ============
-  const cardData = [
-    { label: 'Itens Avaliados', value: String(report.items.length), color: C.primary },
-    { label: 'Conforme', value: String(report.totals.conforme), color: C.successText },
-    { label: 'Parcial', value: String(report.totals.parcial), color: C.warnText },
-    { label: 'Não Conforme', value: String(report.totals.nao_conforme), color: C.dangerText },
-  ];
-  const gap = 4;
-  const cardW = (contentW - gap * 3) / 4;
-  const cardH = 22;
-  y = ensureSpace(doc, y, cardH + 6);
-  cardData.forEach((c, i) => {
-    const x = margin + i * (cardW + gap);
-    doc.setDrawColor(...C.border);
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(x, y, cardW, cardH, 2, 2, 'FD');
-    doc.setFillColor(...c.color);
-    doc.rect(x, y, 2.5, cardH, 'F');
-    doc.setTextColor(...C.muted);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.text(c.label.toUpperCase(), x + 6, y + 8);
-    doc.setTextColor(...C.text);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text(c.value, x + 6, y + 17);
-  });
-  y += cardH + 8;
+  if (report.items.length > 0) {
+    const cardData = [
+      { label: 'Itens Avaliados', value: String(report.items.length), color: C.primary },
+      { label: 'Conforme', value: String(report.totals.conforme), color: C.successText },
+      { label: 'Parcial', value: String(report.totals.parcial), color: C.warnText },
+      { label: 'Não Conforme', value: String(report.totals.nao_conforme), color: C.dangerText },
+    ];
+    const gap = 4;
+    const cardW = (contentW - gap * 3) / 4;
+    const cardH = 22;
+    y = ensureSpace(doc, y, cardH + 6);
+    cardData.forEach((c, i) => {
+      const x = margin + i * (cardW + gap);
+      doc.setDrawColor(...C.border);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x, y, cardW, cardH, 2, 2, 'FD');
+      doc.setFillColor(...c.color);
+      doc.rect(x, y, 2.5, cardH, 'F');
+      doc.setTextColor(...C.muted);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text(c.label.toUpperCase(), x + 6, y + 8);
+      doc.setTextColor(...C.text);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text(c.value, x + 6, y + 17);
+    });
+    y += cardH + 8;
+  }
+
+  // ============ Legacy fallback: relatorio_html (sem resultado_json estruturado) ============
+  // Mesma condição do fallback em ReportView.tsx — sem tabela_analise/itens_checklist,
+  // o conteúdo da análise só existe no HTML bruto gerado pela IA.
+  if (report.items.length === 0 && analysis.relatorio_html) {
+    const legacyText = htmlToReadableText(analysis.relatorio_html);
+    if (legacyText) {
+      y = drawSection(doc, 'Análise Detalhada', margin, y, contentW);
+      doc.setTextColor(...C.text);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      const lines: string[] = doc.splitTextToSize(legacyText, contentW - 4);
+      lines.forEach((line) => {
+        y = ensureSpace(doc, y, 6);
+        doc.text(line, margin + 2, y);
+        y += 4.6;
+      });
+      y += 6;
+    }
+  }
 
   // ============ Executive summary ============
   const summaryText = report.resumoExecutivo || report.diagnostico;

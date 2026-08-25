@@ -25,6 +25,20 @@ const SUPABASE_STORAGE_ORIGIN = (() => {
   }
 })();
 
+function getPageStylesheetText(): string {
+  const chunks: string[] = [];
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      for (const rule of Array.from(sheet.cssRules)) {
+        chunks.push(rule.cssText);
+      }
+    } catch {
+      /* stylesheet de outra origem (ex.: Google Fonts) — cssRules bloqueado, ignora */
+    }
+  }
+  return chunks.join('\n');
+}
+
 function toSafeDocumentUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
   try {
@@ -114,7 +128,11 @@ export function ReportView({ analysis, analyst }: { analysis: Analysis; analyst:
 
   const exportWord = () => {
     const html = printRef.current?.innerHTML || '';
-    const doc = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset="utf-8"><title>Relatório</title></head><body>${html}</body></html>`;
+    // Sem o CSS embutido, as classes do Tailwind não significam nada fora da
+    // página — o Word abriria o relatório sem cor, sem cards, sem tabela
+    // estilizada. Embute o próprio CSS compilado da página pra ficar igual.
+    const css = getPageStylesheetText();
+    const doc = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset="utf-8"><title>Relatório</title><style>${css}</style></head><body>${html}</body></html>`;
     const blob = new Blob(['\ufeff', doc], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
